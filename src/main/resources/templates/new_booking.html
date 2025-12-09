@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html
+    xmlns:th="https://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{base}">
+
+<head>
+    <title>New Booking</title>
+</head>
+
+<body>
+
+<header layout:fragment="header">
+    <p>
+        <a th:href="@{/bookings}">Back to list</a>
+    </p>
+    <h1>New Booking</h1>
+</header>
+
+<section layout:fragment="main">
+
+    <div class="mb-4">
+        <a th:href="@{/profile}" th:text="'Logged in as: ' + ${me.emailAddress()} + ' (' + ${me.type()} + ')'"></a>
+    </div>
+
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <form th:action="@{/bookings/new}" method="post" th:object="${form}">
+
+        <div class="mb-3">
+            <label for="studyRoomId" class="form-label">Study Room</label>
+            <select id="studyRoomId" name="studyRoomId" th:field="*{studyRoomId}" class="form-select" required>
+                <option value="">Select a room</option>
+                <option th:each="room : ${rooms}" th:value="${room.id()}" 
+                    th:text="${room.name()} + ' (capacity: ' + ${room.capacity()} + ', ' + ${room.operatingHoursStart()} + ' - ' + ${room.operatingHoursEnd()} + ')'">
+                </option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="date" class="form-label">Date</label>
+            <input type="date" id="date" name="date" th:field="*{date}" class="form-control" required />
+        </div>
+
+        <div class="mb-3">
+            <label for="startTime" class="form-label">Start Time</label>
+            <input type="time" id="startTime" name="startTime" th:field="*{startTime}" class="form-control" required />
+        </div>
+
+        <div class="mb-3">
+            <label for="endTime" class="form-label">End Time</label>
+            <input type="time" id="endTime" name="endTime" th:field="*{endTime}" class="form-control" required />
+        </div>
+
+        <div>
+            <button type="submit" class="btn btn-primary">Create Booking</button>
+        </div>
+    </form>
+
+</section>
+
+</body>
+</html>
+

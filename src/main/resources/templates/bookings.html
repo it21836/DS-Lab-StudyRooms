@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html
+    xmlns:th="https://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{base}">
+
+<head>
+    <title>My Bookings</title>
+</head>
+
+<body>
+
+<header layout:fragment="header">
+    <h1>My Bookings</h1>
+</header>
+
+<section layout:fragment="main">
+
+    <div class="mb-4">
+        <a th:href="@{/profile}" th:text="'Logged in as: ' + ${me.emailAddress()} + ' (' + ${me.type()} + ')'"></a>
+    </div>
+
+    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <table class="table mb-4">
+        <thead>
+        <tr>
+            <th>Room</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Status</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="b : ${bookings}">
+            <td>
+                <a th:href="@{|/bookings/${b.id()}|}" th:text="${b.studyRoom().name()}"></a>
+            </td>
+            <td th:text="${#temporals.format(b.startTime(), 'dd/MM/yyyy')}"></td>
+            <td th:text="${#temporals.format(b.startTime(), 'HH:mm')} + ' - ' + ${#temporals.format(b.endTime(), 'HH:mm')}"></td>
+            <td th:text="${b.status()}"></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div th:if="${#lists.isEmpty(bookings)}">
+        <p>No bookings yet.</p>
+    </div>
+
+    <div th:if="${me.type().name() == 'STUDENT'}">
+        <a th:href="@{/bookings/new}" class="btn btn-primary">New Booking</a>
+    </div>
+
+</section>
+
+</body>
+</html>
+

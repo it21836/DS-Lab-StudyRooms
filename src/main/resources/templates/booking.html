@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html
+    xmlns:th="https://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{base}">
+
+<head>
+    <title>Booking Details</title>
+</head>
+
+<body>
+
+<header layout:fragment="header">
+    <p>
+        <a th:href="@{/bookings}">Back to list</a>
+    </p>
+    <h1>Booking Details</h1>
+</header>
+
+<section layout:fragment="main">
+
+    <div class="mb-4">
+        <a th:href="@{/profile}" th:text="'Logged in as: ' + ${me.emailAddress()} + ' (' + ${me.type()} + ')'"></a>
+    </div>
+
+    <ul class="mb-4">
+        <li>Room: <b th:text="${booking.studyRoom().name()}"></b></li>
+        <li>Date: <b th:text="${#temporals.format(booking.startTime(), 'dd/MM/yyyy')}"></b></li>
+        <li>Time: <b th:text="${#temporals.format(booking.startTime(), 'HH:mm')} + ' - ' + ${#temporals.format(booking.endTime(), 'HH:mm')}"></b></li>
+        <li>Status: <b th:text="${booking.status()}"></b></li>
+        <li>Created: <b th:text="${booking.createdAt()}"></b></li>
+    </ul>
+
+    <div th:if="${booking.status().name() != 'CANCELLED' and booking.status().name() != 'COMPLETED'}">
+        <form th:action="@{|/bookings/${booking.id()}/cancel|}" method="post">
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Cancel this booking?')">Cancel Booking</button>
+        </form>
+    </div>
+
+</section>
+
+</body>
+</html>
+
