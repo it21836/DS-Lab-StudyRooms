@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html
     xmlns:th="https://www.thymeleaf.org"
+    xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
     xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
     layout:decorate="~{base}">
 
@@ -25,6 +26,7 @@
 
     <ul class="mb-4">
         <li>Room: <b th:text="${booking.studyRoom().name()}"></b></li>
+        <li sec:authorize="hasRole('STAFF')">Student: <b th:text="${booking.student().fullName()}"></b></li>
         <li>Date: <b th:text="${#temporals.format(booking.startTime(), 'dd/MM/yyyy')}"></b></li>
         <li>Time: <b th:text="${#temporals.format(booking.startTime(), 'HH:mm')} + ' - ' + ${#temporals.format(booking.endTime(), 'HH:mm')}"></b></li>
         <li>Status: <b th:text="${booking.status()}"></b></li>
@@ -41,4 +43,3 @@
 
 </body>
 </html>
-

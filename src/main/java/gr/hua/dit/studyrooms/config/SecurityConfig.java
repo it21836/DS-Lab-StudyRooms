@@ -19,16 +19,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-/**
- * Security configuration.
- */
 @Configuration
-@EnableMethodSecurity // enables @PreAuthorize
+@EnableMethodSecurity
 public class SecurityConfig {
 
-    /**
-     * API chain {@code "/api/**"} (stateless, JWT).
-     */
     @Bean
     @Order(1)
     public SecurityFilterChain apiChain(final HttpSecurity http,
@@ -41,6 +35,8 @@ public class SecurityConfig {
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/auth/client-tokens").permitAll()
+                .requestMatchers("/api/v1/rooms/**").permitAll()
+                .requestMatchers("/api/v1/staff/**").hasRole("STAFF")
                 .requestMatchers("/api/v1/**").authenticated()
             )
             .exceptionHandling(exh -> exh
@@ -53,31 +49,29 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /**
-     * UI chain {@code "/**"} (stateful, cookie based).
-     */
     @Bean
     @Order(2)
     public SecurityFilterChain uiChain(final HttpSecurity http) throws Exception {
         http
             .securityMatcher("/**")
-            // Το αφήνουμε ως σχόλιο προσωρινά... TODO configure.
-            // .csrf(csrf -> csrf.ignoringRequestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**"))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
-                .requestMatchers("/", "/login", "/register").permitAll() // Public
-                .requestMatchers("/profile", "/logout").authenticated() // Private
-                .anyRequest().permitAll() // the rest
+                .requestMatchers("/h2-console/**").permitAll()
+                .requestMatchers("/", "/login", "/register").permitAll()
+                .requestMatchers("/profile", "/logout").authenticated()
+                .requestMatchers("/bookings/**").hasAnyRole("STUDENT", "STAFF")
+                .requestMatchers("/staff/**").hasRole("STAFF")
+                .anyRequest().authenticated()
             )
             .formLogin(form -> form
-                .loginPage("/login") // custom login page (see login.html)
-                .loginProcessingUrl("/login") // POST request target (handled by Spring Security)
-                .defaultSuccessUrl("/profile", true)
+                .loginPage("/login")
+                .loginProcessingUrl("/login")
+                .defaultSuccessUrl("/bookings", true)
                 .failureUrl("/login?error")
                 .permitAll()
             )
             .logout(logout -> logout
-                .logoutUrl("/logout") // POST request target (handled by Spring Security)
+                .logoutUrl("/logout")
                 .logoutSuccessUrl("/login?logout")
                 .deleteCookies("JSESSIONID")
                 .invalidateHttpSession(true)

@@ -8,11 +8,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
-/**
- * Component for providing the current user.
- *
- * @see CurrentUser
- */
 @Component
 public final class CurrentUserProvider {
 
@@ -32,8 +27,24 @@ public final class CurrentUserProvider {
     }
 
     public long requiredStudentId() {
-        final var currentUser = this.requireCurrentUser();
-        if (currentUser.type() != PersonType.STUDENT) throw new SecurityException("Student type/role required");
+        var currentUser = requireCurrentUser();
+        if (currentUser.type() != PersonType.STUDENT) {
+            throw new SecurityException("Student role required");
+        }
         return currentUser.id();
+    }
+
+    public long requiredStaffId() {
+        var currentUser = requireCurrentUser();
+        if (currentUser.type() != PersonType.STAFF) {
+            throw new SecurityException("Staff role required");
+        }
+        return currentUser.id();
+    }
+
+    public boolean isStaff() {
+        return getCurrentUser()
+            .map(u -> u.type() == PersonType.STAFF)
+            .orElse(false);
     }
 }
