@@ -41,4 +41,10 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                                 @Param("dayStart") LocalDateTime dayStart,
                                 @Param("dayEnd") LocalDateTime dayEnd,
                                 @Param("statuses") Collection<BookingStatus> statuses);
+
+    @Query("SELECT COUNT(b) FROM Booking b WHERE b.student.id = :studentId " +
+           "AND b.status = 'NO_SHOW' " +
+           "AND b.endTime >= :since")
+    long countNoShowsSince(@Param("studentId") long studentId,
+                           @Param("since") LocalDateTime since);
 }

@@ -19,6 +19,7 @@ import jakarta.transaction.Transactional;
 
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
@@ -29,6 +30,9 @@ import java.util.Set;
 public class BookingBusinessLogicServiceImpl implements BookingBusinessLogicService {
 
     private static final int MAX_BOOKINGS_PER_DAY = 3;
+    private static final int MIN_DURATION_MINUTES = 30;
+    private static final int MAX_DURATION_HOURS = 4;
+    private static final int NO_SHOW_PENALTY_DAYS = 3;
     private static final Set<BookingStatus> ACTIVE_STATUSES = Set.of(BookingStatus.PENDING, BookingStatus.CONFIRMED);
 
     private final BookingRepository bookingRepository;
@@ -77,6 +81,13 @@ public class BookingBusinessLogicServiceImpl implements BookingBusinessLogicServ
             throw new IllegalStateException("Only students can create bookings");
         }
 
+        // Check no-show penalty
+        LocalDateTime penaltyCheck = LocalDateTime.now().minusDays(NO_SHOW_PENALTY_DAYS);
+        long noShowCount = bookingRepository.countNoShowsSince(user.id(), penaltyCheck);
+        if (noShowCount > 0) {
+            throw new IllegalArgumentException("You have recent no-shows. Cannot create new bookings for " + NO_SHOW_PENALTY_DAYS + " days after a no-show.");
+        }
+
         StudyRoom room = studyRoomRepository.findById(request.studyRoomId())
             .orElseThrow(() -> new IllegalArgumentException("Study room not found"));
 
@@ -95,11 +106,21 @@ public class BookingBusinessLogicServiceImpl implements BookingBusinessLogicServ
             throw new IllegalArgumentException("Cannot book in the past");
         }
 
+        // Duration check
+        long durationMinutes = Duration.between(start, end).toMinutes();
+        if (durationMinutes < MIN_DURATION_MINUTES) {
+            throw new IllegalArgumentException("Minimum booking duration is " + MIN_DURATION_MINUTES + " minutes");
+        }
+        if (durationMinutes > MAX_DURATION_HOURS * 60) {
+            throw new IllegalArgumentException("Maximum booking duration is " + MAX_DURATION_HOURS + " hours");
+        }
+
         // Operating hours check
         LocalTime startT = start.toLocalTime();
         LocalTime endT = end.toLocalTime();
         if (startT.isBefore(room.getOperatingHoursStart()) || endT.isAfter(room.getOperatingHoursEnd())) {
-            throw new IllegalArgumentException("Booking is outside operating hours");
+            throw new IllegalArgumentException("Booking is outside operating hours (" + 
+                room.getOperatingHoursStart() + " - " + room.getOperatingHoursEnd() + ")");
         }
 
         // Max bookings per day
@@ -138,7 +159,6 @@ public class BookingBusinessLogicServiceImpl implements BookingBusinessLogicServ
         Booking booking = bookingRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
 
-        // Students can cancel their own, staff can cancel any
         boolean isOwner = booking.getStudent().getId().equals(user.id());
         boolean isStaff = user.type() == PersonType.STAFF;
         if (!isOwner && !isStaff) {
@@ -151,10 +171,17 @@ public class BookingBusinessLogicServiceImpl implements BookingBusinessLogicServ
         if (booking.getStatus() == BookingStatus.COMPLETED) {
             throw new IllegalArgumentException("Cannot cancel completed booking");
         }
+        if (booking.getStatus() == BookingStatus.NO_SHOW) {
+            throw new IllegalArgumentException("Cannot cancel no-show booking");
+        }
+
+        // Cannot cancel after booking has started
+        if (booking.getStartTime().isBefore(LocalDateTime.now()) && !isStaff) {
+            throw new IllegalArgumentException("Cannot cancel after booking has started");
+        }
 
         booking.setStatus(BookingStatus.CANCELLED);
         booking = bookingRepository.save(booking);
         return bookingMapper.toView(booking);
     }
 }
-
