@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html
+    xmlns:th="https://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{base}">
+
+<head>
+    <title>All Bookings</title>
+</head>
+
+<body>
+
+<header layout:fragment="header">
+    <p><a th:href="@{/staff/rooms}">Manage Rooms</a></p>
+    <h1>All Bookings</h1>
+</header>
+
+<section layout:fragment="main">
+
+    <div class="mb-4">
+        <a th:href="@{/profile}" th:text="'Logged in as: ' + ${me.emailAddress()} + ' (STAFF)'"></a>
+    </div>
+
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Room</th>
+            <th>Student</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="b : ${bookings}">
+            <td th:text="${b.studyRoom().name()}"></td>
+            <td th:text="${b.student().fullName()}"></td>
+            <td th:text="${#temporals.format(b.startTime(), 'dd/MM/yyyy')}"></td>
+            <td th:text="${#temporals.format(b.startTime(), 'HH:mm')} + ' - ' + ${#temporals.format(b.endTime(), 'HH:mm')}"></td>
+            <td th:text="${b.status()}"></td>
+            <td>
+                <a th:href="@{|/bookings/${b.id()}|}" class="btn btn-sm btn-secondary">View</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+</section>
+
+</body>
+</html>
+

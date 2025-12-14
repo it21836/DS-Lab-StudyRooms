@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html
+    xmlns:th="https://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{base}">
+
+<head>
+    <title>Manage Rooms</title>
+</head>
+
+<body>
+
+<header layout:fragment="header">
+    <p><a th:href="@{/bookings}">Back to bookings</a></p>
+    <h1>Manage Study Rooms</h1>
+</header>
+
+<section layout:fragment="main">
+
+    <div class="mb-4">
+        <a th:href="@{/profile}" th:text="'Logged in as: ' + ${me.emailAddress()} + ' (STAFF)'"></a>
+    </div>
+
+    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <div class="mb-3">
+        <a th:href="@{/staff/rooms/new}" class="btn btn-primary">Add New Room</a>
+    </div>
+
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Capacity</th>
+            <th>Hours</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="room : ${rooms}">
+            <td th:text="${room.name()}"></td>
+            <td th:text="${room.capacity()}"></td>
+            <td th:text="${room.operatingHoursStart()} + ' - ' + ${room.operatingHoursEnd()}"></td>
+            <td th:text="${room.isActive()} ? 'Active' : 'Inactive'"></td>
+            <td>
+                <a th:href="@{|/staff/rooms/${room.id()}/edit|}" class="btn btn-sm btn-secondary">Edit</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+</section>
+
+</body>
+</html>
+

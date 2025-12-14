@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html
+    xmlns:th="https://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{base}">
+
+<head>
+    <title>New Room</title>
+</head>
+
+<body>
+
+<header layout:fragment="header">
+    <p><a th:href="@{/staff/rooms}">Back to rooms</a></p>
+    <h1>Add New Room</h1>
+</header>
+
+<section layout:fragment="main">
+
+    <form th:action="@{/staff/rooms/new}" method="post">
+
+        <div class="mb-3">
+            <label for="name" class="form-label">Room Name</label>
+            <input type="text" id="name" name="name" class="form-control" required />
+        </div>
+
+        <div class="mb-3">
+            <label for="capacity" class="form-label">Capacity</label>
+            <input type="number" id="capacity" name="capacity" class="form-control" min="1" required />
+        </div>
+
+        <div class="mb-3">
+            <label for="operatingHoursStart" class="form-label">Opening Time</label>
+            <input type="time" id="operatingHoursStart" name="operatingHoursStart" class="form-control" required />
+        </div>
+
+        <div class="mb-3">
+            <label for="operatingHoursEnd" class="form-label">Closing Time</label>
+            <input type="time" id="operatingHoursEnd" name="operatingHoursEnd" class="form-control" required />
+        </div>
+
+        <div class="mb-3">
+            <label for="description" class="form-label">Description</label>
+            <textarea id="description" name="description" class="form-control"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Create Room</button>
+    </form>
+
+</section>
+
+</body>
+</html>
+
