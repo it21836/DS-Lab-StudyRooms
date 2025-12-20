@@ -5,6 +5,8 @@ import gr.hua.dit.studyrooms.core.model.BookingStatus;
 import gr.hua.dit.studyrooms.core.model.Person;
 import gr.hua.dit.studyrooms.core.model.PersonType;
 import gr.hua.dit.studyrooms.core.model.StudyRoom;
+import gr.hua.dit.studyrooms.core.port.HolidayPort;
+import gr.hua.dit.studyrooms.core.port.SmsNotificationPort;
 import gr.hua.dit.studyrooms.core.repository.BookingRepository;
 import gr.hua.dit.studyrooms.core.repository.PersonRepository;
 import gr.hua.dit.studyrooms.core.repository.StudyRoomRepository;
@@ -17,17 +19,23 @@ import gr.hua.dit.studyrooms.core.service.model.CreateBookingRequest;
 
 import jakarta.transaction.Transactional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 @Service
 public class BookingBusinessLogicServiceImpl implements BookingBusinessLogicService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(BookingBusinessLogicServiceImpl.class);
 
     private static final int MAX_BOOKINGS_PER_DAY = 3;
     private static final int MIN_DURATION_MINUTES = 30;
@@ -40,17 +48,23 @@ public class BookingBusinessLogicServiceImpl implements BookingBusinessLogicServ
     private final PersonRepository personRepository;
     private final BookingMapper bookingMapper;
     private final CurrentUserProvider currentUserProvider;
+    private final HolidayPort holidayPort;
+    private final SmsNotificationPort smsNotificationPort;
 
     public BookingBusinessLogicServiceImpl(final BookingRepository bookingRepository,
                                            final StudyRoomRepository studyRoomRepository,
                                            final PersonRepository personRepository,
                                            final BookingMapper bookingMapper,
-                                           final CurrentUserProvider currentUserProvider) {
+                                           final CurrentUserProvider currentUserProvider,
+                                           final HolidayPort holidayPort,
+                                           final SmsNotificationPort smsNotificationPort) {
         this.bookingRepository = bookingRepository;
         this.studyRoomRepository = studyRoomRepository;
         this.personRepository = personRepository;
         this.bookingMapper = bookingMapper;
         this.currentUserProvider = currentUserProvider;
+        this.holidayPort = holidayPort;
+        this.smsNotificationPort = smsNotificationPort;
     }
 
     @Override
@@ -97,6 +111,13 @@ public class BookingBusinessLogicServiceImpl implements BookingBusinessLogicServ
 
         LocalDateTime start = request.startTime();
         LocalDateTime end = request.endTime();
+        LocalDate bookingDate = start.toLocalDate();
+
+        // Holiday check
+        if (holidayPort.isHoliday(bookingDate)) {
+            String holidayName = holidayPort.getHolidayName(bookingDate);
+            throw new IllegalArgumentException("Cannot book on holiday: " + (holidayName != null ? holidayName : bookingDate));
+        }
 
         // Basic time validation
         if (start.isAfter(end) || start.equals(end)) {
@@ -148,6 +169,10 @@ public class BookingBusinessLogicServiceImpl implements BookingBusinessLogicServ
         booking.setStatus(BookingStatus.CONFIRMED);
 
         booking = bookingRepository.save(booking);
+
+        // Send confirmation SMS
+        sendBookingNotification(student, room, start, end, "confirmed");
+
         return bookingMapper.toView(booking);
     }
 
@@ -175,13 +200,31 @@ public class BookingBusinessLogicServiceImpl implements BookingBusinessLogicServ
             throw new IllegalArgumentException("Cannot cancel no-show booking");
         }
 
-        // Cannot cancel after booking has started
         if (booking.getStartTime().isBefore(LocalDateTime.now()) && !isStaff) {
             throw new IllegalArgumentException("Cannot cancel after booking has started");
         }
 
         booking.setStatus(BookingStatus.CANCELLED);
         booking = bookingRepository.save(booking);
+
+        // Send cancellation SMS
+        sendBookingNotification(booking.getStudent(), booking.getStudyRoom(), 
+            booking.getStartTime(), booking.getEndTime(), "cancelled");
+
         return bookingMapper.toView(booking);
+    }
+
+    private void sendBookingNotification(Person student, StudyRoom room, 
+                                          LocalDateTime start, LocalDateTime end, String action) {
+        try {
+            String dateStr = start.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+            String timeStr = start.format(DateTimeFormatter.ofPattern("HH:mm")) + 
+                             "-" + end.format(DateTimeFormatter.ofPattern("HH:mm"));
+            String msg = String.format("StudyRooms: Booking %s for %s on %s at %s", 
+                action, room.getName(), dateStr, timeStr);
+            smsNotificationPort.sendSms(student.getMobilePhoneNumber(), msg);
+        } catch (Exception e) {
+            LOG.warn("Failed to send SMS notification: {}", e.getMessage());
+        }
     }
 }
