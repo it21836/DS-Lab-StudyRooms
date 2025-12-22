@@ -5,6 +5,8 @@ import gr.hua.dit.studyrooms.core.security.JwtService;
 import gr.hua.dit.studyrooms.web.rest.model.UserTokenRequest;
 import gr.hua.dit.studyrooms.web.rest.model.UserTokenResponse;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
@@ -23,6 +25,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value = "/api/v1/auth", produces = MediaType.APPLICATION_JSON_VALUE)
+@Tag(name = "Authentication", description = "User authentication endpoints")
 public class UserAuthResource {
 
     private final AuthenticationManager authenticationManager;
@@ -33,6 +36,7 @@ public class UserAuthResource {
         this.jwtService = jwtService;
     }
 
+    @Operation(summary = "Authenticate user", description = "Returns a JWT token for API access")
     @PostMapping("/tokens")
     public UserTokenResponse authenticate(@RequestBody @Valid UserTokenRequest request) {
         try {
@@ -50,4 +54,3 @@ public class UserAuthResource {
         }
     }
 }
-

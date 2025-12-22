@@ -6,6 +6,8 @@ import gr.hua.dit.studyrooms.core.service.StudyRoomService;
 import gr.hua.dit.studyrooms.core.service.model.StudyRoomView;
 import gr.hua.dit.studyrooms.web.rest.model.RoomAvailability;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +23,7 @@ import java.util.Set;
 
 @RestController
 @RequestMapping(value = "/api/v1/rooms", produces = MediaType.APPLICATION_JSON_VALUE)
+@Tag(name = "Study Rooms", description = "Public study room information")
 public class StudyRoomResource {
 
     private final StudyRoomService studyRoomService;
@@ -31,16 +34,19 @@ public class StudyRoomResource {
         this.bookingRepository = bookingRepository;
     }
 
+    @Operation(summary = "List active rooms", description = "Returns all active study rooms")
     @GetMapping("")
     public List<StudyRoomView> getActiveRooms() {
         return studyRoomService.getActiveRooms();
     }
 
+    @Operation(summary = "Get room details", description = "Returns details for a specific room")
     @GetMapping("/{id}")
     public StudyRoomView getRoom(@PathVariable Long id) {
         return studyRoomService.getRoom(id).orElse(null);
     }
 
+    @Operation(summary = "Check availability", description = "Returns booked time slots for a room on a specific date")
     @GetMapping("/{id}/availability")
     public RoomAvailability getAvailability(
             @PathVariable Long id,

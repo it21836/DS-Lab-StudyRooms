@@ -18,9 +18,6 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/**
- * Initializes application.
- */
 @Service
 public class InitializationService {
 
@@ -29,21 +26,17 @@ public class InitializationService {
     private final ClientRepository clientRepository;
     private final StudyRoomRepository studyRoomRepository;
     private final PersonBusinessLogicService personBusinessLogicService;
-    private final TicketBusinessLogicService ticketBusinessLogicService;
     private final AtomicBoolean initialized;
 
     public InitializationService(final ClientRepository clientRepository,
                                  final StudyRoomRepository studyRoomRepository,
-                                 final PersonBusinessLogicService personBusinessLogicService,
-                                 final TicketBusinessLogicService ticketBusinessLogicService) {
+                                 final PersonBusinessLogicService personBusinessLogicService) {
         if (clientRepository == null) throw new NullPointerException();
         if (studyRoomRepository == null) throw new NullPointerException();
         if (personBusinessLogicService == null) throw new NullPointerException();
-        if (ticketBusinessLogicService == null) throw new NullPointerException();
         this.clientRepository = clientRepository;
         this.studyRoomRepository = studyRoomRepository;
         this.personBusinessLogicService = personBusinessLogicService;
-        this.ticketBusinessLogicService = ticketBusinessLogicService;
         this.initialized = new AtomicBoolean(false);
     }
 
@@ -61,7 +54,6 @@ public class InitializationService {
         );
         this.clientRepository.saveAll(clientList);
         final List<CreatePersonRequest> createPersonRequestList = List.of(
-            // Staff member
             new CreatePersonRequest(
                 PersonType.STAFF,
                 "staff001",
@@ -71,7 +63,6 @@ public class InitializationService {
                 "+306900000000",
                 "1234"
             ),
-            // Students
             new CreatePersonRequest(
                 PersonType.STUDENT,
                 "it2023001",
@@ -93,7 +84,7 @@ public class InitializationService {
         );
         for (final var createPersonRequest : createPersonRequestList) {
             try {
-                final var result = this.personBusinessLogicService.createPerson(createPersonRequest, false); // do not send SMS
+                final var result = this.personBusinessLogicService.createPerson(createPersonRequest, false);
                 if (!result.created()) {
                     LOGGER.warn("Failed to create person {}: {}", createPersonRequest.huaId(), result.reason());
                 }
@@ -101,26 +92,11 @@ public class InitializationService {
                 LOGGER.warn("Failed to create person {} during initialization: {}", createPersonRequest.huaId(), e.getMessage());
             }
         }
-        // Study rooms
         createStudyRoomIfNotExists("Room A1", 10, LocalTime.of(8, 0), LocalTime.of(20, 0), "Individual study room", true);
         createStudyRoomIfNotExists("Room A2", 10, LocalTime.of(8, 0), LocalTime.of(20, 0), "Individual study room", true);
         createStudyRoomIfNotExists("Group Room B1", 6, LocalTime.of(9, 0), LocalTime.of(18, 0), "Group study room with whiteboard", true);
         createStudyRoomIfNotExists("Computer Lab C1", 20, LocalTime.of(8, 0), LocalTime.of(22, 0), "Computer lab for digital resources", true);
         createStudyRoomIfNotExists("Reading Hall", 30, LocalTime.of(7, 0), LocalTime.of(23, 0), "Quiet reading area", true);
-        // TODO Not working: requires authenticated user!
-        /*
-        final List<OpenTicketRequest> openTicketRequestList = List.of(
-            new OpenTicketRequest(
-                2L,
-                1L,
-                "Test Subject",
-                "Test Student Content"
-            )
-        );
-        for (final var openTicketRequest : openTicketRequestList) {
-            this.ticketService.openTicket(openTicketRequest, false); // do not send SMS
-        }
-        */
         LOGGER.info("Database initialization completed successfully.");
     }
 

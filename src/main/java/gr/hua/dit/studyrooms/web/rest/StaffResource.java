@@ -12,6 +12,8 @@ import gr.hua.dit.studyrooms.core.service.model.StudyRoomView;
 import gr.hua.dit.studyrooms.core.service.model.UpdateStudyRoomRequest;
 import gr.hua.dit.studyrooms.web.rest.model.BookingStatistics;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -30,6 +32,7 @@ import java.util.Map;
 @RestController
 @RequestMapping(value = "/api/v1/staff", produces = MediaType.APPLICATION_JSON_VALUE)
 @PreAuthorize("hasRole('STAFF')")
+@Tag(name = "Staff Management", description = "Staff-only room and booking management")
 public class StaffResource {
 
     private final StudyRoomService studyRoomService;
@@ -47,36 +50,43 @@ public class StaffResource {
         this.bookingRepository = bookingRepository;
     }
 
+    @Operation(summary = "List all rooms", description = "Returns all study rooms including inactive ones")
     @GetMapping("/rooms")
     public List<StudyRoomView> getAllRooms() {
         return studyRoomService.getAllRooms();
     }
 
+    @Operation(summary = "Create room", description = "Creates a new study room")
     @PostMapping(value = "/rooms", consumes = MediaType.APPLICATION_JSON_VALUE)
     public StudyRoomView createRoom(@RequestBody CreateStudyRoomRequest request) {
         return studyRoomService.createRoom(request);
     }
 
+    @Operation(summary = "Update room", description = "Updates an existing study room")
     @PutMapping(value = "/rooms/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public StudyRoomView updateRoom(@PathVariable Long id, @RequestBody UpdateStudyRoomRequest request) {
         return studyRoomService.updateRoom(id, request);
     }
 
+    @Operation(summary = "Delete room", description = "Deletes a study room")
     @DeleteMapping("/rooms/{id}")
     public void deleteRoom(@PathVariable Long id) {
         studyRoomService.deleteRoom(id);
     }
 
+    @Operation(summary = "List all bookings", description = "Returns all bookings from all users")
     @GetMapping("/bookings")
     public List<BookingView> getAllBookings() {
         return bookingDataService.getAllBookings();
     }
 
+    @Operation(summary = "Cancel any booking", description = "Cancels any booking by ID")
     @DeleteMapping("/bookings/{id}")
     public BookingView cancelBooking(@PathVariable Long id) {
         return bookingBusinessLogicService.cancelBooking(id);
     }
 
+    @Operation(summary = "Get statistics", description = "Returns booking statistics")
     @GetMapping("/statistics")
     public BookingStatistics getStatistics() {
         List<Booking> all = bookingRepository.findAll();

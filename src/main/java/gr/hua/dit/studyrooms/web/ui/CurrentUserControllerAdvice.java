@@ -6,10 +6,7 @@ import gr.hua.dit.studyrooms.core.security.CurrentUserProvider;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
-/**
- * Provides specific controllers {@link org.springframework.ui.Model} with the current user.
- */
-@ControllerAdvice(basePackageClasses = { ProfileController.class, TicketController.class })
+@ControllerAdvice(basePackageClasses = { ProfileController.class, BookingController.class })
 public class CurrentUserControllerAdvice {
 
     private final CurrentUserProvider currentUserProvider;
