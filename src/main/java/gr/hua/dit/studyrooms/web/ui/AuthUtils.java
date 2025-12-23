@@ -3,9 +3,6 @@ package gr.hua.dit.studyrooms.web.ui;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
-/**
- * Authentication utilities for controllers.
- */
 final class AuthUtils {
 
     private AuthUtils() {

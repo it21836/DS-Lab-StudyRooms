@@ -22,9 +22,6 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
 
-/**
- * Person entity.
- */
 @Entity
 @Table(
     name = "person",

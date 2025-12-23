@@ -2,9 +2,6 @@ package gr.hua.dit.studyrooms.web.rest.error;
 
 import jakarta.servlet.http.HttpServletRequest;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,47 +13,34 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.Instant;
 
-/**
- * Provides global error handling for the REST API (/api/**). Returns JSON instead of HTML pages.
- */
 @RestControllerAdvice(basePackages = "gr.hua.dit.studyrooms.web.rest")
 @Order(1)
 public class GlobalErrorHandlerRestControllerAdvice {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GlobalErrorHandlerRestControllerAdvice.class);
-
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiError> handleAnyError(final Exception exception,
-                                                   final HttpServletRequest httpServletRequest) {
-        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+    public ResponseEntity<ApiError> handle(Exception ex, HttpServletRequest req) {
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
 
-        if (exception instanceof NoResourceFoundException) {
-            httpStatus = HttpStatus.NOT_FOUND;
-        } else if (exception instanceof SecurityException) {
-            httpStatus = HttpStatus.UNAUTHORIZED;
-        } else if (exception instanceof AuthorizationDeniedException) {
-            httpStatus = HttpStatus.FORBIDDEN;
-        } else if (exception instanceof ResponseStatusException responseStatusException) {
+        if (ex instanceof NoResourceFoundException) {
+            status = HttpStatus.NOT_FOUND;
+        } else if (ex instanceof SecurityException) {
+            status = HttpStatus.UNAUTHORIZED;
+        } else if (ex instanceof AuthorizationDeniedException) {
+            status = HttpStatus.FORBIDDEN;
+        } else if (ex instanceof ResponseStatusException rse) {
             try {
-                httpStatus = HttpStatus.valueOf(responseStatusException.getStatusCode().value());
+                status = HttpStatus.valueOf(rse.getStatusCode().value());
             } catch (Exception ignored) {}
         }
-        LOGGER.warn("REST error [{} {}] -> status={} cause={}: {}",
-            httpServletRequest.getMethod(),
-            httpServletRequest.getRequestURI(),
-            httpStatus.value(),
-            exception.getClass().getSimpleName(),
-            exception.getMessage()
-        );
 
-        final ApiError apiError = new ApiError(
+        ApiError err = new ApiError(
             Instant.now(),
-            httpStatus.value(),
-            httpStatus.getReasonPhrase(),
-            exception.getMessage(),
-            httpServletRequest.getRequestURI()
+            status.value(),
+            status.getReasonPhrase(),
+            ex.getMessage(),
+            req.getRequestURI()
         );
 
-        return ResponseEntity.status(httpStatus).body(apiError);
+        return ResponseEntity.status(status).body(err);
     }
 }

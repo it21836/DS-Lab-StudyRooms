@@ -22,6 +22,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
+    
+    // 2 chains: API (stateless/jwt) + UI (session)
 
     @Bean
     @Order(1)

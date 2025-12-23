@@ -38,7 +38,7 @@ public class BookingResource {
     @Operation(summary = "Get booking details", description = "Returns details for a specific booking")
     @GetMapping("/{id}")
     public BookingView getBooking(@PathVariable Long id) {
-        return bookingService.getBooking(id).orElse(null);
+        return bookingService.getBooking(id).orElse(null); // TODO: 404?
     }
 
     @Operation(summary = "Create booking", description = "Creates a new booking (students only)")

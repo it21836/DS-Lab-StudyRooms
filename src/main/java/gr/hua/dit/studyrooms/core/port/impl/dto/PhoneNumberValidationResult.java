@@ -1,8 +1,5 @@
 package gr.hua.dit.studyrooms.core.port.impl.dto;
 
-/**
- * PhoneNumberValidationResult DTO.
- */
 public record PhoneNumberValidationResult(
         String raw,
         boolean valid,

@@ -6,7 +6,6 @@ import gr.hua.dit.studyrooms.core.model.Person;
 import gr.hua.dit.studyrooms.core.model.PersonType;
 import gr.hua.dit.studyrooms.core.model.StudyRoom;
 import gr.hua.dit.studyrooms.core.port.HolidayPort;
-import gr.hua.dit.studyrooms.core.port.SmsNotificationPort;
 import gr.hua.dit.studyrooms.core.repository.BookingRepository;
 import gr.hua.dit.studyrooms.core.repository.PersonRepository;
 import gr.hua.dit.studyrooms.core.repository.StudyRoomRepository;
@@ -19,15 +18,12 @@ import gr.hua.dit.studyrooms.core.service.model.CreateBookingRequest;
 
 import jakarta.transaction.Transactional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -35,12 +31,10 @@ import java.util.Set;
 @Service
 public class BookingBusinessLogicServiceImpl implements BookingBusinessLogicService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(BookingBusinessLogicServiceImpl.class);
-
-    private static final int MAX_BOOKINGS_PER_DAY = 3;
-    private static final int MIN_DURATION_MINUTES = 30;
-    private static final int MAX_DURATION_HOURS = 4;
-    private static final int NO_SHOW_PENALTY_DAYS = 3;
+    private static final int MAX_BOOKINGS = 3;
+    private static final int MIN_MINS = 30;
+    private static final int MAX_HRS = 4;
+    private static final int PENALTY_DAYS = 3;
     private static final Set<BookingStatus> ACTIVE_STATUSES = Set.of(BookingStatus.PENDING, BookingStatus.CONFIRMED);
 
     private final BookingRepository bookingRepository;
@@ -49,22 +43,19 @@ public class BookingBusinessLogicServiceImpl implements BookingBusinessLogicServ
     private final BookingMapper bookingMapper;
     private final CurrentUserProvider currentUserProvider;
     private final HolidayPort holidayPort;
-    private final SmsNotificationPort smsNotificationPort;
 
     public BookingBusinessLogicServiceImpl(final BookingRepository bookingRepository,
                                            final StudyRoomRepository studyRoomRepository,
                                            final PersonRepository personRepository,
                                            final BookingMapper bookingMapper,
                                            final CurrentUserProvider currentUserProvider,
-                                           final HolidayPort holidayPort,
-                                           final SmsNotificationPort smsNotificationPort) {
+                                           final HolidayPort holidayPort) {
         this.bookingRepository = bookingRepository;
         this.studyRoomRepository = studyRoomRepository;
         this.personRepository = personRepository;
         this.bookingMapper = bookingMapper;
         this.currentUserProvider = currentUserProvider;
         this.holidayPort = holidayPort;
-        this.smsNotificationPort = smsNotificationPort;
     }
 
     @Override
@@ -92,71 +83,68 @@ public class BookingBusinessLogicServiceImpl implements BookingBusinessLogicServ
     public BookingView createBooking(CreateBookingRequest request) {
         CurrentUser user = currentUserProvider.requireCurrentUser();
         if (user.type() != PersonType.STUDENT) {
-            throw new IllegalStateException("Only students can create bookings");
+            throw new IllegalStateException("Μόνο φοιτητές μπορούν να κάνουν κρατήσεις");
         }
 
-        // Check no-show penalty
-        LocalDateTime penaltyCheck = LocalDateTime.now().minusDays(NO_SHOW_PENALTY_DAYS);
-        long noShowCount = bookingRepository.countNoShowsSince(user.id(), penaltyCheck);
-        if (noShowCount > 0) {
-            throw new IllegalArgumentException("You have recent no-shows. Cannot create new bookings for " + NO_SHOW_PENALTY_DAYS + " days after a no-show.");
+        // check penalty
+        LocalDateTime penaltyCheck = LocalDateTime.now().minusDays(PENALTY_DAYS);
+        long cnt = bookingRepository.countNoShowsSince(user.id(), penaltyCheck);
+        if (cnt > 0) {
+            throw new IllegalArgumentException("Έχετε πρόσφατες απουσίες. Δεν μπορείτε να κάνετε νέες κρατήσεις για " + PENALTY_DAYS + " ημέρες.");
         }
 
         StudyRoom room = studyRoomRepository.findById(request.studyRoomId())
-            .orElseThrow(() -> new IllegalArgumentException("Study room not found"));
+            .orElseThrow(() -> new IllegalArgumentException("Ο χώρος μελέτης δεν βρέθηκε"));
 
         if (!room.getIsActive()) {
-            throw new IllegalArgumentException("Study room is not available");
+            throw new IllegalArgumentException("Ο χώρος μελέτης δεν είναι διαθέσιμος");
         }
 
         LocalDateTime start = request.startTime();
         LocalDateTime end = request.endTime();
         LocalDate bookingDate = start.toLocalDate();
 
-        // Holiday check
+        // check if holiday (nager.at api)
         if (holidayPort.isHoliday(bookingDate)) {
             String holidayName = holidayPort.getHolidayName(bookingDate);
-            throw new IllegalArgumentException("Cannot book on holiday: " + (holidayName != null ? holidayName : bookingDate));
+            throw new IllegalArgumentException("Δεν επιτρέπονται κρατήσεις σε αργίες: " + (holidayName != null ? holidayName : bookingDate));
         }
 
-        // Basic time validation
         if (start.isAfter(end) || start.equals(end)) {
-            throw new IllegalArgumentException("End time must be after start time");
+            throw new IllegalArgumentException("Η ώρα λήξης πρέπει να είναι μετά την ώρα έναρξης");
         }
         if (start.isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("Cannot book in the past");
+            throw new IllegalArgumentException("Δεν μπορείτε να κάνετε κράτηση στο παρελθόν");
         }
 
-        // Duration check
-        long durationMinutes = Duration.between(start, end).toMinutes();
-        if (durationMinutes < MIN_DURATION_MINUTES) {
-            throw new IllegalArgumentException("Minimum booking duration is " + MIN_DURATION_MINUTES + " minutes");
+        long mins = Duration.between(start, end).toMinutes();
+        if (mins < MIN_MINS) {
+            throw new IllegalArgumentException("Η ελάχιστη διάρκεια κράτησης είναι " + MIN_MINS + " λεπτά");
         }
-        if (durationMinutes > MAX_DURATION_HOURS * 60) {
-            throw new IllegalArgumentException("Maximum booking duration is " + MAX_DURATION_HOURS + " hours");
+        if (mins > MAX_HRS * 60) {
+            throw new IllegalArgumentException("Η μέγιστη διάρκεια κράτησης είναι " + MAX_HRS + " ώρες");
         }
 
-        // Operating hours check
         LocalTime startT = start.toLocalTime();
         LocalTime endT = end.toLocalTime();
         if (startT.isBefore(room.getOperatingHoursStart()) || endT.isAfter(room.getOperatingHoursEnd())) {
-            throw new IllegalArgumentException("Booking is outside operating hours (" + 
+            throw new IllegalArgumentException("Η κράτηση είναι εκτός ωραρίου λειτουργίας (" + 
                 room.getOperatingHoursStart() + " - " + room.getOperatingHoursEnd() + ")");
         }
 
-        // Max bookings per day
+        // max bookings per day
         LocalDateTime dayStart = start.toLocalDate().atStartOfDay();
         LocalDateTime dayEnd = dayStart.plusDays(1);
         long count = bookingRepository.countByStudentIdAndDay(user.id(), dayStart, dayEnd, ACTIVE_STATUSES);
-        if (count >= MAX_BOOKINGS_PER_DAY) {
-            throw new IllegalArgumentException("Maximum " + MAX_BOOKINGS_PER_DAY + " bookings per day reached");
+        if (count >= MAX_BOOKINGS) {
+            throw new IllegalArgumentException("Έχετε φτάσει το όριο των " + MAX_BOOKINGS + " κρατήσεων ανά ημέρα");
         }
 
-        // Check for overlapping bookings
+        // overlap check
         List<Booking> overlapping = bookingRepository.findOverlappingBookings(
             room.getId(), start, end, ACTIVE_STATUSES);
         if (!overlapping.isEmpty()) {
-            throw new IllegalArgumentException("Time slot is not available");
+            throw new IllegalArgumentException("Η ώρα δεν είναι διαθέσιμη");
         }
 
         Person student = personRepository.getReferenceById(user.id());
@@ -170,9 +158,6 @@ public class BookingBusinessLogicServiceImpl implements BookingBusinessLogicServ
 
         booking = bookingRepository.save(booking);
 
-        // Send confirmation SMS
-        sendBookingNotification(student, room, start, end, "confirmed");
-
         return bookingMapper.toView(booking);
     }
 
@@ -182,49 +167,84 @@ public class BookingBusinessLogicServiceImpl implements BookingBusinessLogicServ
         CurrentUser user = currentUserProvider.requireCurrentUser();
 
         Booking booking = bookingRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
+            .orElseThrow(() -> new IllegalArgumentException("Η κράτηση δεν βρέθηκε"));
 
         boolean isOwner = booking.getStudent().getId().equals(user.id());
         boolean isStaff = user.type() == PersonType.STAFF;
         if (!isOwner && !isStaff) {
-            throw new SecurityException("Not authorized to cancel this booking");
+            throw new SecurityException("Δεν έχετε δικαίωμα να ακυρώσετε αυτή την κράτηση");
         }
 
         if (booking.getStatus() == BookingStatus.CANCELLED) {
-            throw new IllegalArgumentException("Booking is already cancelled");
+            throw new IllegalArgumentException("Η κράτηση έχει ήδη ακυρωθεί");
         }
         if (booking.getStatus() == BookingStatus.COMPLETED) {
-            throw new IllegalArgumentException("Cannot cancel completed booking");
+            throw new IllegalArgumentException("Δεν μπορείτε να ακυρώσετε ολοκληρωμένη κράτηση");
         }
         if (booking.getStatus() == BookingStatus.NO_SHOW) {
-            throw new IllegalArgumentException("Cannot cancel no-show booking");
+            throw new IllegalArgumentException("Δεν μπορείτε να ακυρώσετε κράτηση με απουσία");
         }
 
         if (booking.getStartTime().isBefore(LocalDateTime.now()) && !isStaff) {
-            throw new IllegalArgumentException("Cannot cancel after booking has started");
+            throw new IllegalArgumentException("Δεν μπορείτε να ακυρώσετε μετά την έναρξη της κράτησης");
         }
 
         booking.setStatus(BookingStatus.CANCELLED);
         booking = bookingRepository.save(booking);
 
-        // Send cancellation SMS
-        sendBookingNotification(booking.getStudent(), booking.getStudyRoom(), 
-            booking.getStartTime(), booking.getEndTime(), "cancelled");
-
         return bookingMapper.toView(booking);
     }
 
-    private void sendBookingNotification(Person student, StudyRoom room, 
-                                          LocalDateTime start, LocalDateTime end, String action) {
-        try {
-            String dateStr = start.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-            String timeStr = start.format(DateTimeFormatter.ofPattern("HH:mm")) + 
-                             "-" + end.format(DateTimeFormatter.ofPattern("HH:mm"));
-            String msg = String.format("StudyRooms: Booking %s for %s on %s at %s", 
-                action, room.getName(), dateStr, timeStr);
-            smsNotificationPort.sendSms(student.getMobilePhoneNumber(), msg);
-        } catch (Exception e) {
-            LOG.warn("Failed to send SMS notification: {}", e.getMessage());
+    @Transactional
+    @Override
+    public BookingView checkIn(Long id) {
+        CurrentUser user = currentUserProvider.requireCurrentUser();
+        
+        // μόνο staff μπορεί να κάνει check-in
+        if (user.type() != PersonType.STAFF) {
+            throw new SecurityException("Μόνο το προσωπικό μπορεί να επιβεβαιώσει παρουσία");
         }
+
+        Booking booking = bookingRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Η κράτηση δεν βρέθηκε"));
+
+        if (booking.getStatus() != BookingStatus.CONFIRMED) {
+            throw new IllegalArgumentException("Μόνο επιβεβαιωμένες κρατήσεις μπορούν να γίνουν check-in");
+        }
+
+        // έλεγχος αν είναι η σωστή ώρα (από 15 λεπτά πριν έως το τέλος)
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime earliestCheckIn = booking.getStartTime().minusMinutes(15);
+        if (now.isBefore(earliestCheckIn)) {
+            throw new IllegalArgumentException("Το check-in επιτρέπεται από 15 λεπτά πριν την έναρξη");
+        }
+        if (now.isAfter(booking.getEndTime())) {
+            throw new IllegalArgumentException("Η κράτηση έχει λήξει");
+        }
+
+        booking.setStatus(BookingStatus.COMPLETED);
+        booking = bookingRepository.save(booking);
+        return bookingMapper.toView(booking);
+    }
+
+    @Transactional
+    @Override
+    public BookingView markNoShow(Long id) {
+        CurrentUser user = currentUserProvider.requireCurrentUser();
+        
+        if (user.type() != PersonType.STAFF) {
+            throw new SecurityException("Μόνο το προσωπικό μπορεί να σημειώσει απουσία");
+        }
+
+        Booking booking = bookingRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Η κράτηση δεν βρέθηκε"));
+
+        if (booking.getStatus() != BookingStatus.CONFIRMED) {
+            throw new IllegalArgumentException("Μόνο επιβεβαιωμένες κρατήσεις μπορούν να σημειωθούν ως απουσία");
+        }
+
+        booking.setStatus(BookingStatus.NO_SHOW);
+        booking = bookingRepository.save(booking);
+        return bookingMapper.toView(booking);
     }
 }

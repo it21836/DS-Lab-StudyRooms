@@ -15,5 +15,9 @@ public interface BookingBusinessLogicService {
     BookingView createBooking(CreateBookingRequest request);
 
     BookingView cancelBooking(Long id);
+
+    BookingView checkIn(Long id);
+
+    BookingView markNoShow(Long id);
 }
 

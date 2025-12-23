@@ -6,8 +6,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -20,72 +18,52 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
-/**
- * JWT authentication filter.
- */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+    private JwtService jwtService;
 
-    private final JwtService jwtService;
-
-    public JwtAuthenticationFilter(final JwtService jwtService) {
-        if (jwtService == null) throw new NullPointerException();
+    public JwtAuthenticationFilter(JwtService jwtService) {
         this.jwtService = jwtService;
     }
 
-    private void writeError(final HttpServletResponse response) throws IOException {
-        response.setStatus(401);
-        response.setContentType("application/json");
-        response.getWriter().write("{\"error\": \"invalid_token\"}");
-    }
-
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        final String path = request.getServletPath();
-        if (path.equals("/api/v1/auth/client-tokens")) return true;
-        return !path.startsWith("/api/v1");
+    protected boolean shouldNotFilter(HttpServletRequest req) {
+        String path = req.getServletPath();
+        return path.equals("/api/v1/auth/client-tokens") || !path.startsWith("/api/v1");
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    protected void doFilterInternal(final HttpServletRequest request,
-                                    final HttpServletResponse response,
-                                    final FilterChain filterChain) throws ServletException, IOException {
-        final String authorizationHeader = request.getHeader("Authorization");
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain chain) throws ServletException, IOException {
+        String authHeader = request.getHeader("Authorization");
 
-        // No header or not Bearer? -> Let the request continue unauthenticated.
-        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            chain.doFilter(request, response);
             return;
         }
 
-        final String token = authorizationHeader.substring(7);
+        String token = authHeader.substring(7);
         try {
-            final Claims claims = this.jwtService.parse(token);
-            final String subject = claims.getSubject();
-            final Collection<String> roles = (Collection<String>) claims.get("roles");
+            Claims claims = jwtService.parse(token);
+            String subject = claims.getSubject();
+            Collection<String> roles = (Collection<String>) claims.get("roles");
 
-            // Convert String to GrantedAuthority
-            final var authorities =
-                roles == null
-                    ? List.<GrantedAuthority>of() // empty list
-                    : roles.stream().map(role ->
-                        new SimpleGrantedAuthority("ROLE_" + role)).toList();
+            var auths = roles == null ? List.<GrantedAuthority>of() 
+                : roles.stream().map(r -> new SimpleGrantedAuthority("ROLE_" + r)).toList();
 
-            // Create User.
-            final User principal = new User(subject, "", authorities);
-            final UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(principal, null, authorities);
-            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-        } catch (Exception ex) {
-            // Invalid Token or Internal error.
-            LOGGER.warn("JwtAuthenticationFilter failed", ex);
-            this.writeError(response);
-            return; // stop here, i.e, next filters are ignored.
+            User user = new User(subject, "", auths);
+            var auth = new UsernamePasswordAuthenticationToken(user, null, auths);
+            SecurityContextHolder.getContext().setAuthentication(auth);
+        } catch (Exception e) {
+            response.setStatus(401);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\": \"invalid_token\"}");
+            return;
         }
 
-        filterChain.doFilter(request, response); // next filter.
+        chain.doFilter(request, response);
     }
 }

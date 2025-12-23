@@ -5,14 +5,14 @@
     layout:decorate="~{base}">
 
 <head>
-    <title>Edit Room</title>
+    <title>Επεξεργασία χώρου μελέτης</title>
 </head>
 
 <body>
 
 <header layout:fragment="header">
-    <p><a th:href="@{/staff/rooms}">Back to rooms</a></p>
-    <h1>Edit Room</h1>
+    <p><a th:href="@{/staff/rooms}">Πίσω στους χώρους μελέτης</a></p>
+    <h1>Επεξεργασία χώρου μελέτης</h1>
 </header>
 
 <section layout:fragment="main">
@@ -20,46 +20,49 @@
     <form th:action="@{|/staff/rooms/${room.id()}/edit|}" method="post">
 
         <div class="mb-3">
-            <label for="name" class="form-label">Room Name</label>
+            <label for="name" class="form-label">Όνομα χώρου μελέτης</label>
             <input type="text" id="name" name="name" class="form-control" th:value="${room.name()}" required />
         </div>
 
         <div class="mb-3">
-            <label for="capacity" class="form-label">Capacity</label>
+            <label for="capacity" class="form-label">Χωρητικότητα</label>
             <input type="number" id="capacity" name="capacity" class="form-control" th:value="${room.capacity()}" min="1" required />
         </div>
 
         <div class="mb-3">
-            <label for="operatingHoursStart" class="form-label">Opening Time</label>
-            <input type="time" id="operatingHoursStart" name="operatingHoursStart" class="form-control" th:value="${room.operatingHoursStart()}" required />
+            <label for="operatingHoursStart" class="form-label">Πρώτη ώρα λειτουργίας</label>
+            <input type="text" id="operatingHoursStart" name="operatingHoursStart" class="form-control" 
+                   th:value="${room.operatingHoursStart()}" pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]" placeholder="πχ 08:00" required />
+            <small class="text-muted">Μορφή 24ώρου (ΩΩ:ΛΛ)</small>
         </div>
 
         <div class="mb-3">
-            <label for="operatingHoursEnd" class="form-label">Closing Time</label>
-            <input type="time" id="operatingHoursEnd" name="operatingHoursEnd" class="form-control" th:value="${room.operatingHoursEnd()}" required />
+            <label for="operatingHoursEnd" class="form-label">Τελευταία ώρα λειτουργίας</label>
+            <input type="text" id="operatingHoursEnd" name="operatingHoursEnd" class="form-control" 
+                   th:value="${room.operatingHoursEnd()}" pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]" placeholder="πχ 20:00" required />
+            <small class="text-muted">Μορφή 24ώρου (ΩΩ:ΛΛ)</small>
         </div>
 
         <div class="mb-3">
-            <label for="description" class="form-label">Description</label>
+            <label for="description" class="form-label">Περιγραφή</label>
             <textarea id="description" name="description" class="form-control" th:text="${room.description()}"></textarea>
         </div>
 
         <div class="mb-3 form-check">
             <input type="checkbox" id="isActive" name="isActive" class="form-check-input" value="true" th:checked="${room.isActive()}" />
-            <label for="isActive" class="form-check-label">Active</label>
+            <label for="isActive" class="form-check-label">Ενεργός</label>
         </div>
 
-        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <button type="submit" class="btn btn-primary">Αποθήκευση</button>
     </form>
 
     <hr>
 
     <form th:action="@{|/staff/rooms/${room.id()}/delete|}" method="post" class="mt-3">
-        <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this room?')">Delete Room</button>
+        <button type="submit" class="btn btn-danger" onclick="return confirm('Διαγραφή χώρου;')">Διαγραφή χώρου μελέτης</button>
     </form>
 
 </section>
 
 </body>
 </html>
-

@@ -6,9 +6,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-/**
- * DTO for requesting the creation (registration) of a Person.
- */
 public record CreatePersonRequest(
     @NotNull PersonType type,
     @NotNull @NotBlank @Size(max = 20) String huaId,

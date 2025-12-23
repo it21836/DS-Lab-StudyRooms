@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import gr.hua.dit.studyrooms.config.RestApiClientConfig;
@@ -11,37 +12,33 @@ import gr.hua.dit.studyrooms.core.model.PersonType;
 import gr.hua.dit.studyrooms.core.port.LookupPort;
 import gr.hua.dit.studyrooms.core.port.impl.dto.LookupResult;
 
-/**
- * Default implementation of {@link LookupPort}. It uses the NOC external service.
- */
 @Service
 public class LookupPortImpl implements LookupPort {
 
-    private final RestTemplate restTemplate;
+    private RestTemplate restTemplate;
 
-    public LookupPortImpl(final RestTemplate restTemplate) {
-        if (restTemplate == null) throw new NullPointerException();
+    public LookupPortImpl(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
     @Override
-    public Optional<PersonType> lookup(final String huaId) {
-        if (huaId == null) throw new NullPointerException();
-        if (huaId.isBlank()) throw new IllegalArgumentException();
+    public Optional<PersonType> lookup(String huaId) {
+        try {
+            String url = RestApiClientConfig.BASE_URL + "/api/v1/lookups/" + huaId;
+            ResponseEntity<LookupResult> resp = restTemplate.getForEntity(url, LookupResult.class);
 
-        // HTTP Request
-        // --------------------------------------------------
-
-        final String baseUrl = RestApiClientConfig.BASE_URL;
-        final String url = baseUrl + "/api/v1/lookups/" + huaId;
-        final ResponseEntity<LookupResult> response = this.restTemplate.getForEntity(url, LookupResult.class);
-
-        if (response.getStatusCode().is2xxSuccessful()) {
-            final LookupResult lookupResult = response.getBody();
-            if (lookupResult == null) throw new NullPointerException();
-            return Optional.ofNullable(lookupResult.type());
+            if (resp.getStatusCode().is2xxSuccessful() && resp.getBody() != null) {
+                return Optional.ofNullable(resp.getBody().type());
+            }
+            return Optional.empty();
+        } catch (RestClientException e) {
+            // fallback
+            if (huaId.toLowerCase().startsWith("staff")) {
+                return Optional.of(PersonType.STAFF);
+            } else if (huaId.toLowerCase().startsWith("it")) {
+                return Optional.of(PersonType.STUDENT);
+            }
+            return Optional.empty();
         }
-
-        throw new RuntimeException("External service responded with " + response.getStatusCode());
     }
 }

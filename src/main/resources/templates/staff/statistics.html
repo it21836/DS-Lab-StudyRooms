@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html
+    xmlns:th="https://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{base}">
+
+<head>
+    <title>Στατιστικά Πληρότητας</title>
+</head>
+
+<body>
+
+<header layout:fragment="header">
+    <p><a th:href="@{/staff/rooms}">Διαχείριση χώρων</a></p>
+    <h1>Στατιστικά Πληρότητας</h1>
+</header>
+
+<section layout:fragment="main">
+
+    <div class="mb-4">
+        <a th:href="@{/profile}" th:text="'Συνδεδεμένος ως: ' + ${me.emailAddress()} + ' (STAFF)'"></a>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <strong>Συνολικά Στατιστικά</strong>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Σύνολο κρατήσεων</span>
+                        <strong th:text="${totalBookings}"></strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Επιβεβαιωμένες</span>
+                        <strong class="text-success" th:text="${confirmedBookings}"></strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Ολοκληρωμένες</span>
+                        <strong class="text-primary" th:text="${completedBookings}"></strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Ακυρωμένες</span>
+                        <strong class="text-warning" th:text="${cancelledBookings}"></strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Απουσίες (No-show)</span>
+                        <strong class="text-danger" th:text="${noShowBookings}"></strong>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <strong>Ποσοστό Πληρότητας</strong>
+                </div>
+                <div class="card-body text-center">
+                    <h2 th:text="${occupancyRate} + '%'"></h2>
+                    <p class="text-muted">Επιβεβαιωμένες + Ολοκληρωμένες / Σύνολο</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <strong>Κρατήσεις ανά Χώρο</strong>
+        </div>
+        <table class="table mb-0">
+            <thead>
+            <tr>
+                <th>Χώρος</th>
+                <th>Αριθμός Κρατήσεων</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="entry : ${bookingsPerRoom}">
+                <td th:text="${entry.key}"></td>
+                <td th:text="${entry.value}"></td>
+            </tr>
+            <tr th:if="${#maps.isEmpty(bookingsPerRoom)}">
+                <td colspan="2" class="text-muted">Δεν υπάρχουν δεδομένα</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-4">
+        <a th:href="@{/staff/rooms}" class="btn btn-secondary">Πίσω στη Διαχείριση</a>
+    </div>
+
+</section>
+
+</body>
+</html>
+

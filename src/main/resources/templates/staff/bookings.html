@@ -5,31 +5,31 @@
     layout:decorate="~{base}">
 
 <head>
-    <title>All Bookings</title>
+    <title>Όλες οι κρατήσεις</title>
 </head>
 
 <body>
 
 <header layout:fragment="header">
-    <p><a th:href="@{/staff/rooms}">Manage Rooms</a></p>
-    <h1>All Bookings</h1>
+    <p><a th:href="@{/staff/rooms}">Διαχείριση χώρων</a></p>
+    <h1>Όλες οι κρατήσεις</h1>
 </header>
 
 <section layout:fragment="main">
 
     <div class="mb-4">
-        <a th:href="@{/profile}" th:text="'Logged in as: ' + ${me.emailAddress()} + ' (STAFF)'"></a>
+        <a th:href="@{/profile}" th:text="'Συνδεδεμένος ως: ' + ${me.emailAddress()} + ' (STAFF)'"></a>
     </div>
 
     <table class="table">
         <thead>
         <tr>
-            <th>Room</th>
-            <th>Student</th>
-            <th>Date</th>
-            <th>Time</th>
-            <th>Status</th>
-            <th>Actions</th>
+            <th>Χώρος</th>
+            <th>Φοιτητής</th>
+            <th>Ημερομηνία</th>
+            <th>Ώρα</th>
+            <th>Κατάσταση</th>
+            <th>Ενέργειες</th>
         </tr>
         </thead>
         <tbody>
@@ -38,9 +38,15 @@
             <td th:text="${b.student().fullName()}"></td>
             <td th:text="${#temporals.format(b.startTime(), 'dd/MM/yyyy')}"></td>
             <td th:text="${#temporals.format(b.startTime(), 'HH:mm')} + ' - ' + ${#temporals.format(b.endTime(), 'HH:mm')}"></td>
-            <td th:text="${b.status()}"></td>
+            <td th:switch="${b.status().name()}">
+                <span th:case="'PENDING'">Σε αναμονή</span>
+                <span th:case="'CONFIRMED'">Επιβεβαιωμένη</span>
+                <span th:case="'CANCELLED'">Ακυρωμένη</span>
+                <span th:case="'COMPLETED'">Ολοκληρωμένη</span>
+                <span th:case="'NO_SHOW'">Απουσία</span>
+            </td>
             <td>
-                <a th:href="@{|/bookings/${b.id()}|}" class="btn btn-sm btn-secondary">View</a>
+                <a th:href="@{|/bookings/${b.id()}|}" class="btn btn-sm btn-secondary">Προβολή</a>
             </td>
         </tr>
         </tbody>
@@ -50,4 +56,3 @@
 
 </body>
 </html>
-

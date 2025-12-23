@@ -86,6 +86,7 @@ public class StaffResource {
         return bookingBusinessLogicService.cancelBooking(id);
     }
 
+    // TODO: αυτό θέλει caching
     @Operation(summary = "Get statistics", description = "Returns booking statistics")
     @GetMapping("/statistics")
     public BookingStatistics getStatistics() {

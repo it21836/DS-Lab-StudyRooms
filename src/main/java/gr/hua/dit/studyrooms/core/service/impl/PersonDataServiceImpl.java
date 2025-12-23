@@ -1,6 +1,5 @@
 package gr.hua.dit.studyrooms.core.service.impl;
 
-import gr.hua.dit.studyrooms.core.model.Person;
 import gr.hua.dit.studyrooms.core.repository.PersonRepository;
 import gr.hua.dit.studyrooms.core.service.PersonDataService;
 import gr.hua.dit.studyrooms.core.service.mapper.PersonMapper;
@@ -10,30 +9,19 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-/**
- * Default implementation of {@link PersonDataService}.
- */
 @Service
 public class PersonDataServiceImpl implements PersonDataService {
 
-    private final PersonRepository personRepository;
-    private final PersonMapper personMapper;
+    private PersonRepository repo;
+    private PersonMapper mapper;
 
-    public PersonDataServiceImpl(final PersonRepository personRepository,
-                                 final PersonMapper personMapper) {
-        if (personRepository == null) throw new NullPointerException();
-        if (personMapper == null) throw new NullPointerException();
-        this.personRepository = personRepository;
-        this.personMapper = personMapper;
+    public PersonDataServiceImpl(PersonRepository repo, PersonMapper mapper) {
+        this.repo = repo;
+        this.mapper = mapper;
     }
 
     @Override
     public List<PersonView> getAllPeople() {
-        final List<Person> personList = this.personRepository.findAll();
-        final List<PersonView> personViewList = personList
-            .stream()
-            .map(this.personMapper::convertPersonToPersonView)
-            .toList();
-        return personViewList;
+        return repo.findAll().stream().map(mapper::toView).toList();
     }
 }

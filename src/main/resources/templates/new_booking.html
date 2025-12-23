@@ -5,22 +5,22 @@
     layout:decorate="~{base}">
 
 <head>
-    <title>New Booking</title>
+    <title>Νέα κράτηση</title>
 </head>
 
 <body>
 
 <header layout:fragment="header">
     <p>
-        <a th:href="@{/bookings}">Back to list</a>
+        <a th:href="@{/bookings}">Πίσω στη λίστα</a>
     </p>
-    <h1>New Booking</h1>
+    <h1>Νέα κράτηση</h1>
 </header>
 
 <section layout:fragment="main">
 
     <div class="mb-4">
-        <a th:href="@{/profile}" th:text="'Logged in as: ' + ${me.emailAddress()} + ' (' + ${me.type()} + ')'"></a>
+        <a th:href="@{/profile}" th:text="'Συνδεδεμένος ως: ' + ${me.emailAddress()} + ' (' + ${me.type()} + ')'"></a>
     </div>
 
     <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
@@ -28,32 +28,38 @@
     <form th:action="@{/bookings/new}" method="post" th:object="${form}">
 
         <div class="mb-3">
-            <label for="studyRoomId" class="form-label">Study Room</label>
+            <label for="studyRoomId" class="form-label">Χώρος μελέτης</label>
             <select id="studyRoomId" name="studyRoomId" th:field="*{studyRoomId}" class="form-select" required>
-                <option value="">Select a room</option>
+                <option value="">Επιλέξτε χώρο μελέτης</option>
                 <option th:each="room : ${rooms}" th:value="${room.id()}" 
-                    th:text="${room.name()} + ' (capacity: ' + ${room.capacity()} + ', ' + ${room.operatingHoursStart()} + ' - ' + ${room.operatingHoursEnd()} + ')'">
+                    th:text="${room.name()} + ' (χωρητικότητα: ' + ${room.capacity()} + ', ' + ${room.operatingHoursStart()} + ' - ' + ${room.operatingHoursEnd()} + ')'">
                 </option>
             </select>
         </div>
 
         <div class="mb-3">
-            <label for="date" class="form-label">Date</label>
-            <input type="date" id="date" name="date" th:field="*{date}" class="form-control" required />
+            <label for="date" class="form-label">Ημερομηνία</label>
+            <input type="text" id="date" name="date" th:field="*{date}" class="form-control" 
+                   pattern="\d{2}-\d{2}-\d{4}" placeholder="πχ 15-01-2025" required />
+            <small class="text-muted">Μορφή: ΗΗ-ΜΜ-ΕΕΕΕ</small>
         </div>
 
         <div class="mb-3">
-            <label for="startTime" class="form-label">Start Time</label>
-            <input type="time" id="startTime" name="startTime" th:field="*{startTime}" class="form-control" required />
+            <label for="startTime" class="form-label">Ώρα έναρξης</label>
+            <input type="text" id="startTime" name="startTime" th:field="*{startTime}" class="form-control" 
+                   pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]" placeholder="πχ 09:00" required />
+            <small class="text-muted">Μορφή 24ώρου (ΩΩ:ΛΛ)</small>
         </div>
 
         <div class="mb-3">
-            <label for="endTime" class="form-label">End Time</label>
-            <input type="time" id="endTime" name="endTime" th:field="*{endTime}" class="form-control" required />
+            <label for="endTime" class="form-label">Ώρα λήξης</label>
+            <input type="text" id="endTime" name="endTime" th:field="*{endTime}" class="form-control" 
+                   pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]" placeholder="πχ 12:00" required />
+            <small class="text-muted">Μορφή 24ώρου (ΩΩ:ΛΛ)</small>
         </div>
 
         <div>
-            <button type="submit" class="btn btn-primary">Create Booking</button>
+            <button type="submit" class="btn btn-primary">Κράτηση</button>
         </div>
     </form>
 
@@ -61,4 +67,3 @@
 
 </body>
 </html>
-

@@ -25,6 +25,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Controller
@@ -75,7 +76,9 @@ public class BookingController {
             return "new_booking";
         }
         try {
-            LocalDate date = LocalDate.parse(form.date());
+            // μορφή ΗΗ-ΜΜ-ΕΕΕΕ
+            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+            LocalDate date = LocalDate.parse(form.date(), dateFormatter);
             LocalTime start = LocalTime.parse(form.startTime());
             LocalTime end = LocalTime.parse(form.endTime());
 
@@ -94,14 +97,39 @@ public class BookingController {
     }
 
     @PostMapping("/{id}/cancel")
-    public String cancel(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String cancel(@PathVariable Long id, RedirectAttributes ra) {
         try {
             bookingService.cancelBooking(id);
-            redirectAttributes.addFlashAttribute("message", "Booking cancelled");
+            ra.addFlashAttribute("message", "Η κράτηση ακυρώθηκε");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            // TODO better error msg
+            ra.addFlashAttribute("error", e.getMessage());
         }
         return "redirect:/bookings";
+    }
+
+    @PreAuthorize("hasRole('STAFF')")
+    @PostMapping("/{id}/checkin")
+    public String checkIn(@PathVariable Long id, RedirectAttributes ra) {
+        try {
+            bookingService.checkIn(id);
+            ra.addFlashAttribute("message", "Η παρουσία επιβεβαιώθηκε");
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/bookings/" + id;
+    }
+
+    @PreAuthorize("hasRole('STAFF')")
+    @PostMapping("/{id}/noshow")
+    public String markNoShow(@PathVariable Long id, RedirectAttributes ra) {
+        try {
+            bookingService.markNoShow(id);
+            ra.addFlashAttribute("message", "Η απουσία καταχωρήθηκε");
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/bookings/" + id;
     }
 }
 

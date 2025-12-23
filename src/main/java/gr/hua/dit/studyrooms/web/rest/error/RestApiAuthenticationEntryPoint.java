@@ -15,9 +15,6 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.time.Instant;
 
-/**
- * Default implementation of {@link AuthenticationEntryPoint} for the REST API.
- */
 @Component
 public class RestApiAuthenticationEntryPoint implements AuthenticationEntryPoint {
 

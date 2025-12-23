@@ -5,77 +5,74 @@
     layout:decorate="~{base}">
 
 <head>
-    <title>Registration</title>
+    <title>Εγγραφή</title>
 </head>
 
 <body>
 
 <header layout:fragment="header">
-    <h1>Study Rooms <small>/ Registration</small></h1>
+    <h1>StudyRooms <small>/ Εγγραφή</small></h1>
 </header>
 
 <section layout:fragment="main">
 
-    <!-- REGISTRATION FORM -->
     <form th:action="@{/register}" method="post" th:object="${createPersonRequest}">
 
-        <!-- ERROR MESSAGE -->
         <div class="text-center mb-3" th:if="${errorMessage != null}">
             <p class="text-danger m-0 p-0" th:text="${errorMessage}"></p>
         </div>
 
         <div class="mb-3">
-            <label class="form-label">I am:</label>
+            <label class="form-label">Είμαι:</label>
             <select name="type" th:field="*{type}" class="form-select">
-                <option value="TEACHER">Teacher</option>
-                <option value="STUDENT">Student</option>
+                <option value="STAFF">Προσωπικό</option>
+                <option value="STUDENT">Φοιτητής/τρια</option>
             </select>
             <div class="text-danger small mt-1" th:if="${#fields.hasErrors('type')}" th:errors="*{type}"></div>
         </div>
 
         <div class="mb-3">
-            <label class="form-label">HUA ID</label>
-            <input type="text" name="huaId" th:field="*{huaId}" class="form-control" placeholder="Example: it2023001 (without @hua.gr)" required />
+            <label class="form-label">Κωδικός ΧΠΑ</label>
+            <input type="text" name="huaId" th:field="*{huaId}" class="form-control" placeholder="Π.χ. it2023001 (χωρίς @hua.gr)" required />
             <div class="text-danger small mt-1" th:if="${#fields.hasErrors('huaId')}" th:errors="*{huaId}"></div>
         </div>
 
         <div class="mb-3">
-            <label class="form-label">First Name</label>
+            <label class="form-label">Όνομα</label>
             <input type="text" name="firstName" th:field="*{firstName}" class="form-control" required />
             <div class="text-danger small mt-1" th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}"></div>
         </div>
 
         <div class="mb-3">
-            <label class="form-label">Last Name</label>
+            <label class="form-label">Επώνυμο</label>
             <input type="text" name="lastName" th:field="*{lastName}" class="form-control" required />
             <div class="text-danger small mt-1" th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}"></div>
         </div>
 
         <div class="mb-3">
-            <label class="form-label">Email Address</label>
+            <label class="form-label">Email</label>
             <input type="email" name="emailAddress" th:field="*{emailAddress}" class="form-control" required />
             <div class="text-danger small mt-1" th:if="${#fields.hasErrors('emailAddress')}" th:errors="*{emailAddress}"></div>
         </div>
 
         <div class="mb-3">
-            <label class="form-label">Mobile Phone Number</label>
+            <label class="form-label">Κινητό τηλέφωνο</label>
             <input type="tel" name="mobilePhoneNumber" th:field="*{mobilePhoneNumber}" class="form-control" required />
             <div class="text-danger small mt-1" th:if="${#fields.hasErrors('mobilePhoneNumber')}" th:errors="*{mobilePhoneNumber}"></div>
         </div>
 
         <div class="mb-3">
-            <label class="form-label">Password</label>
+            <label class="form-label">Κωδικός πρόσβασης</label>
             <input type="password" name="rawPassword" th:field="*{rawPassword}" class="form-control" required />
             <div class="text-danger small mt-1" th:if="${#fields.hasErrors('rawPassword')}" th:errors="*{rawPassword}"></div>
         </div>
 
         <div class="mb-4">
-            <button type="submit" class="btn btn-primary">Register</button>
+            <button type="submit" class="btn btn-primary">Εγγραφή</button>
         </div>
 
-        <!-- USEFUL LINKS -->
         <p class="m-0 p-0">
-            <a th:href="@{/login}">Already have an account? Log in</a>
+            <a th:href="@{/login}">Έχετε ήδη λογαριασμό; Σύνδεση</a>
         </p>
 
     </form>

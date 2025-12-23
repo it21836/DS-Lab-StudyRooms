@@ -8,9 +8,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Repository for {@link Person} entity.
- */
 @Repository
 public interface PersonRepository extends JpaRepository<Person, Long> {
 

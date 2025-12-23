@@ -3,9 +3,6 @@ package gr.hua.dit.studyrooms.web;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
-/**
- * Controller for <strong>Testing</strong>.
- */
 @Controller
 public class TestController {
 

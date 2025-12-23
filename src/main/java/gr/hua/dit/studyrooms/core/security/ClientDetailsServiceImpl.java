@@ -14,9 +14,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * Default implementation of {@link ClientDetailsService}.
- */
 @Service
 public class ClientDetailsServiceImpl implements ClientDetailsService {
 

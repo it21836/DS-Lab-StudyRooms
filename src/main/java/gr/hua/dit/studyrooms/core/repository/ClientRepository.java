@@ -7,9 +7,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-/**
- * Repository for {@link Client} entity.
- */
 @Repository
 public interface ClientRepository extends JpaRepository<Client, Long> {
 

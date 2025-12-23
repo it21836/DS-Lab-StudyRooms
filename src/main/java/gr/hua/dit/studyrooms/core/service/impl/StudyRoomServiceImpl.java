@@ -17,72 +17,68 @@ import java.util.Optional;
 @Service
 public class StudyRoomServiceImpl implements StudyRoomService {
 
-    private final StudyRoomRepository studyRoomRepository;
-    private final StudyRoomMapper studyRoomMapper;
+    private StudyRoomRepository repo;
+    private StudyRoomMapper mapper;
 
-    public StudyRoomServiceImpl(final StudyRoomRepository studyRoomRepository,
-                                final StudyRoomMapper studyRoomMapper) {
-        this.studyRoomRepository = studyRoomRepository;
-        this.studyRoomMapper = studyRoomMapper;
+    public StudyRoomServiceImpl(StudyRoomRepository repo, StudyRoomMapper mapper) {
+        this.repo = repo;
+        this.mapper = mapper;
     }
 
     @Override
     public List<StudyRoomView> getActiveRooms() {
-        List<StudyRoom> rooms = studyRoomRepository.findAllByIsActiveOrderByName(true);
-        return rooms.stream().map(studyRoomMapper::toView).toList();
+        return repo.findAllByIsActiveOrderByName(true).stream().map(mapper::toView).toList();
     }
 
     @Override
     public List<StudyRoomView> getAllRooms() {
-        List<StudyRoom> rooms = studyRoomRepository.findAll();
-        return rooms.stream().map(studyRoomMapper::toView).toList();
+        return repo.findAll().stream().map(mapper::toView).toList();
     }
 
     @Override
     public Optional<StudyRoomView> getRoom(Long id) {
-        return studyRoomRepository.findById(id).map(studyRoomMapper::toView);
+        return repo.findById(id).map(mapper::toView);
     }
 
     @Transactional
     @Override
-    public StudyRoomView createRoom(CreateStudyRoomRequest request) {
-        if (studyRoomRepository.existsByName(request.name())) {
+    public StudyRoomView createRoom(CreateStudyRoomRequest req) {
+        if (repo.existsByName(req.name())) {
             throw new IllegalArgumentException("Room with this name already exists");
         }
-        StudyRoom room = new StudyRoom();
-        room.setName(request.name());
-        room.setCapacity(request.capacity());
-        room.setOperatingHoursStart(request.operatingHoursStart());
-        room.setOperatingHoursEnd(request.operatingHoursEnd());
-        room.setDescription(request.description());
-        room.setIsActive(true);
-        room = studyRoomRepository.save(room);
-        return studyRoomMapper.toView(room);
+        StudyRoom r = new StudyRoom();
+        r.setName(req.name());
+        r.setCapacity(req.capacity());
+        r.setOperatingHoursStart(req.operatingHoursStart());
+        r.setOperatingHoursEnd(req.operatingHoursEnd());
+        r.setDescription(req.description());
+        r.setIsActive(true);
+        r = repo.save(r);
+        return mapper.toView(r);
     }
 
     @Transactional
     @Override
-    public StudyRoomView updateRoom(Long id, UpdateStudyRoomRequest request) {
-        StudyRoom room = studyRoomRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Room not found"));
+    public StudyRoomView updateRoom(Long id, UpdateStudyRoomRequest req) {
+        StudyRoom room = repo.findById(id).orElseThrow(() -> new IllegalArgumentException("Room not found"));
 
-        if (request.name() != null) room.setName(request.name());
-        if (request.capacity() != null) room.setCapacity(request.capacity());
-        if (request.operatingHoursStart() != null) room.setOperatingHoursStart(request.operatingHoursStart());
-        if (request.operatingHoursEnd() != null) room.setOperatingHoursEnd(request.operatingHoursEnd());
-        if (request.description() != null) room.setDescription(request.description());
-        if (request.isActive() != null) room.setIsActive(request.isActive());
+        if (req.name() != null) room.setName(req.name());
+        if (req.capacity() != null) room.setCapacity(req.capacity());
+        if (req.operatingHoursStart() != null) room.setOperatingHoursStart(req.operatingHoursStart());
+        if (req.operatingHoursEnd() != null) room.setOperatingHoursEnd(req.operatingHoursEnd());
+        if (req.description() != null) room.setDescription(req.description());
+        if (req.isActive() != null) room.setIsActive(req.isActive());
 
-        room = studyRoomRepository.save(room);
-        return studyRoomMapper.toView(room);
+        room = repo.save(room);
+        return mapper.toView(room);
     }
 
     @Transactional
     @Override
     public void deleteRoom(Long id) {
-        if (!studyRoomRepository.existsById(id)) {
+        if (!repo.existsById(id)) {
             throw new IllegalArgumentException("Room not found");
         }
-        studyRoomRepository.deleteById(id);
+        repo.deleteById(id);
     }
 }

@@ -15,54 +15,42 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.Date;
 
-/**
- * JWT (JSON Web Token) service.
- *
- * <p>TODO fix deprecated methods
- */
 @Service
 public class JwtService {
 
-    private final Key key;
-    private final String issuer;
-    private final String audience;
-    private final long ttlMinutes; // time-to-live.
+    private Key key;
+    private String issuer;
+    private String audience;
+    private long ttl;
 
-    public JwtService(@Value("${app.jwt.secret}") final String secret,
-                      @Value("${app.jwt.issuer}") final String issuer,
-                      @Value("${app.jwt.audience}") final String audience,
-                      @Value("${app.jwt.ttl-minutes}") final long ttlMinutes) {
-        if (secret == null) throw new NullPointerException();
-        if (secret.isBlank()) throw new IllegalArgumentException();
-        if (issuer == null) throw new NullPointerException();
-        if (issuer.isBlank()) throw new IllegalArgumentException();
-        if (audience == null) throw new NullPointerException();
-        if (audience.isBlank()) throw new IllegalArgumentException();
-        if (ttlMinutes <= 0) throw new IllegalArgumentException();
+    public JwtService(@Value("${app.jwt.secret}") String secret,
+                      @Value("${app.jwt.issuer}") String issuer,
+                      @Value("${app.jwt.audience}") String audience,
+                      @Value("${app.jwt.ttl-minutes}") long ttl) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.issuer = issuer;
         this.audience = audience;
-        this.ttlMinutes = ttlMinutes;
+        this.ttl = ttl;
     }
 
-    public String issue(final String subject, final Collection<String> roles) {
-        final Instant now = Instant.now();
+    public String issue(String subject, Collection<String> roles) {
+        Instant now = Instant.now();
         return Jwts.builder()
             .subject(subject)
-            .issuer(this.issuer)
-            .setAudience(this.audience)
+            .issuer(issuer)
+            .setAudience(audience)
             .claim("roles", roles)
             .issuedAt(Date.from(now))
-            .expiration(Date.from(now.plus(Duration.ofMinutes(this.ttlMinutes))))
-            .signWith(this.key, SignatureAlgorithm.HS256)
+            .expiration(Date.from(now.plus(Duration.ofMinutes(ttl))))
+            .signWith(key, SignatureAlgorithm.HS256)
             .compact();
     }
 
-    public Claims parse(final String token) {
+    public Claims parse(String token) {
         return Jwts.parser()
-            .requireAudience(this.audience)
-            .requireIssuer(this.issuer)
-            .setSigningKey(this.key)
+            .requireAudience(audience)
+            .requireIssuer(issuer)
+            .setSigningKey(key)
             .build()
             .parseClaimsJws(token)
             .getBody();

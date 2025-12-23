@@ -6,19 +6,19 @@
     layout:decorate="~{base}">
 
 <head>
-    <title>Bookings</title>
+    <title>Κρατήσεις</title>
 </head>
 
 <body>
 
 <header layout:fragment="header">
-    <h1 th:text="${me.type().name() == 'STAFF'} ? 'All Bookings' : 'My Bookings'"></h1>
+    <h1 th:text="${me.type().name() == 'STAFF'} ? 'Όλες οι Κρατήσεις' : 'Οι Κρατήσεις μου'"></h1>
 </header>
 
 <section layout:fragment="main">
 
     <div class="mb-4">
-        <a th:href="@{/profile}" th:text="'Logged in as: ' + ${me.emailAddress()} + ' (' + ${me.type()} + ')'"></a>
+        <a th:href="@{/profile}" th:text="'Συνδεδεμένος ως: ' + ${me.emailAddress()} + ' (' + ${me.type()} + ')'"></a>
     </div>
 
     <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
@@ -27,11 +27,11 @@
     <table class="table mb-4">
         <thead>
         <tr>
-            <th>Room</th>
-            <th sec:authorize="hasRole('STAFF')">Student</th>
-            <th>Date</th>
-            <th>Time</th>
-            <th>Status</th>
+            <th>Χώρος</th>
+            <th sec:authorize="hasRole('STAFF')">Φοιτητής</th>
+            <th>Ημερομηνία</th>
+            <th>Ώρα</th>
+            <th>Κατάσταση</th>
         </tr>
         </thead>
         <tbody>
@@ -42,21 +42,27 @@
             <td sec:authorize="hasRole('STAFF')" th:text="${b.student().fullName()}"></td>
             <td th:text="${#temporals.format(b.startTime(), 'dd/MM/yyyy')}"></td>
             <td th:text="${#temporals.format(b.startTime(), 'HH:mm')} + ' - ' + ${#temporals.format(b.endTime(), 'HH:mm')}"></td>
-            <td th:text="${b.status()}"></td>
+            <td th:switch="${b.status().name()}">
+                <span th:case="'PENDING'">Σε αναμονή</span>
+                <span th:case="'CONFIRMED'">Επιβεβαιωμένη</span>
+                <span th:case="'CANCELLED'">Ακυρωμένη</span>
+                <span th:case="'COMPLETED'">Ολοκληρωμένη</span>
+                <span th:case="'NO_SHOW'">Απουσία</span>
+            </td>
         </tr>
         </tbody>
     </table>
 
     <div th:if="${#lists.isEmpty(bookings)}">
-        <p>No bookings yet.</p>
+        <p>Δεν υπάρχουν κρατήσεις.</p>
     </div>
 
     <div sec:authorize="hasRole('STUDENT')">
-        <a th:href="@{/bookings/new}" class="btn btn-primary">New Booking</a>
+        <a th:href="@{/bookings/new}" class="btn btn-primary">Νέα Κράτηση</a>
     </div>
 
     <div sec:authorize="hasRole('STAFF')" class="mt-3">
-        <a th:href="@{/staff/rooms}" class="btn btn-primary">Manage Rooms</a>
+        <a th:href="@{/staff/rooms}" class="btn btn-primary">Διαχείριση Χώρων</a>
     </div>
 
 </section>

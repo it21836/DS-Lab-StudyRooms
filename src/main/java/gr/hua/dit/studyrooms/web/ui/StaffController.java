@@ -1,5 +1,8 @@
 package gr.hua.dit.studyrooms.web.ui;
 
+import gr.hua.dit.studyrooms.core.model.Booking;
+import gr.hua.dit.studyrooms.core.model.BookingStatus;
+import gr.hua.dit.studyrooms.core.repository.BookingRepository;
 import gr.hua.dit.studyrooms.core.service.BookingDataService;
 import gr.hua.dit.studyrooms.core.service.StudyRoomService;
 import gr.hua.dit.studyrooms.core.service.model.BookingView;
@@ -18,7 +21,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/staff")
@@ -27,10 +32,14 @@ public class StaffController {
 
     private final StudyRoomService studyRoomService;
     private final BookingDataService bookingDataService;
+    private final BookingRepository bookingRepository;
 
-    public StaffController(StudyRoomService studyRoomService, BookingDataService bookingDataService) {
+    public StaffController(StudyRoomService studyRoomService, 
+                          BookingDataService bookingDataService,
+                          BookingRepository bookingRepository) {
         this.studyRoomService = studyRoomService;
         this.bookingDataService = bookingDataService;
+        this.bookingRepository = bookingRepository;
     }
 
     @GetMapping("/rooms")
@@ -69,6 +78,7 @@ public class StaffController {
 
     @GetMapping("/rooms/{id}/edit")
     public String editRoomForm(@PathVariable Long id, Model model) {
+        // TODO: 404 page instead of redirect?
         StudyRoomView room = studyRoomService.getRoom(id).orElse(null);
         if (room == null) {
             return "redirect:/staff/rooms";
@@ -118,6 +128,37 @@ public class StaffController {
         List<BookingView> bookings = bookingDataService.getAllBookings();
         model.addAttribute("bookings", bookings);
         return "staff/bookings";
+    }
+
+    @GetMapping("/statistics")
+    public String showStatistics(Model model) {
+        List<Booking> all = bookingRepository.findAll();
+
+        long total = all.size();
+        long confirmed = all.stream().filter(b -> b.getStatus() == BookingStatus.CONFIRMED).count();
+        long cancelled = all.stream().filter(b -> b.getStatus() == BookingStatus.CANCELLED).count();
+        long noShow = all.stream().filter(b -> b.getStatus() == BookingStatus.NO_SHOW).count();
+        long completed = all.stream().filter(b -> b.getStatus() == BookingStatus.COMPLETED).count();
+
+        // κρατήσεις ανά χώρο
+        Map<String, Long> perRoom = new HashMap<>();
+        for (Booking b : all) {
+            String roomName = b.getStudyRoom().getName();
+            perRoom.merge(roomName, 1L, Long::sum);
+        }
+
+        // ποσοστό πληρότητας (επιβεβαιωμένες + ολοκληρωμένες / σύνολο)
+        double occupancyRate = total > 0 ? ((double)(confirmed + completed) / total) * 100 : 0;
+
+        model.addAttribute("totalBookings", total);
+        model.addAttribute("confirmedBookings", confirmed);
+        model.addAttribute("cancelledBookings", cancelled);
+        model.addAttribute("noShowBookings", noShow);
+        model.addAttribute("completedBookings", completed);
+        model.addAttribute("bookingsPerRoom", perRoom);
+        model.addAttribute("occupancyRate", String.format("%.1f", occupancyRate));
+
+        return "staff/statistics";
     }
 }
 

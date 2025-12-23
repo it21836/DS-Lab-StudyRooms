@@ -5,23 +5,23 @@
     layout:decorate="~{base}">
 
 <head>
-    <title>Logout</title>
+    <title>Αποσύνδεση</title>
 </head>
 
 <body>
 
 <header layout:fragment="header">
-    <h1>Study Rooms <small>/ Logout</small></h1>
+    <h1>StudyRooms <small>/ Αποσύνδεση</small></h1>
 </header>
 
 <section layout:fragment="main">
 
     <form th:action="@{/logout}" method="post">
         <div class="mb-4">
-            <button type="submit" class="btn btn-primary">Log out</button>
+            <button type="submit" class="btn btn-primary">Αποσύνδεση</button>
         </div>
 
-        <p><a th:href="@{/profile}">Profile</a></p>
+        <p><a th:href="@{/profile}">Προφίλ</a></p>
     </form>
 
 </section>

@@ -5,19 +5,19 @@
     layout:decorate="~{base}">
 
 <head>
-    <title>Error</title>
+    <title>Σφάλμα</title>
 </head>
 
 <body>
 
 <header layout:fragment="header">
-    <h1>Oops! An error occurred</h1>
+    <h1>Ωχ! Προέκυψε σφάλμα</h1>
 </header>
 
 <section layout:fragment="main">
-    <p th:if="${path}" th:text="${'Path: ' + (path == null ? '' : path)}"></p>
+    <p th:if="${path}" th:text="${'Διαδρομή: ' + (path == null ? '' : path)}"></p>
     <p th:if="${message}" th:text="${message}"></p>
-    <p><a th:href="@{/}">Homepage</a></p>
+    <p><a th:href="@{/}">Αρχική Σελίδα</a></p>
 </section>
 
 </body>

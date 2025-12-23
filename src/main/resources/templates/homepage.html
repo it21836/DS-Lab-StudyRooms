@@ -5,30 +5,30 @@
     layout:decorate="~{base}">
 
 <head>
-    <title>Home</title>
+    <title>Αρχική</title>
 </head>
 
 <body>
 
 <header layout:fragment="header">
-    <h1>📚 Study Rooms</h1>
-    <h3>Library Room Booking System</h3>
+    <h1>📚 StudyRooms</h1>
+    <h3>Σύστημα κράτησης χώρων βιβλιοθήκης</h3>
 </header>
 
 <section layout:fragment="main">
 
     <div class="mb-4">
-        <p>Book study rooms and spaces at the Harokopio University Library. View available rooms, check their schedules, and make reservations online.</p>
+        <p>Κάντε κράτηση χώρων μελέτης στη Βιβλιοθήκη του Χαροκόπειου Πανεπιστημίου. Δείτε τους διαθέσιμους χώρους, τα ωράρια λειτουργίας και κάντε κράτηση online.</p>
     </div>
 
     <div class="mb-4">
-        <h4>Available Rooms</h4>
+        <h4>Διαθέσιμοι χώροι μελέτης</h4>
         <table class="table">
             <thead>
             <tr>
-                <th>Room</th>
-                <th>Capacity</th>
-                <th>Hours</th>
+                <th>Χώρος</th>
+                <th>Χωρητικότητα</th>
+                <th>Ωράριο</th>
             </tr>
             </thead>
             <tbody>
@@ -42,8 +42,8 @@
     </div>
 
     <div class="text-center mt-4">
-        <p><a th:href="@{/login}">Log in to book a room</a></p>
-        <p><a th:href="@{/register}">Register</a></p>
+        <p><a th:href="@{/login}">Συνδεθείτε για να κάνετε κράτηση</a></p>
+        <p><a th:href="@{/register}">Εγγραφή</a></p>
     </div>
 
 </section>

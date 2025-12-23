@@ -8,26 +8,24 @@ import org.springframework.stereotype.Component;
 @Component
 public class BookingMapper {
 
-    private final PersonMapper personMapper;
-    private final StudyRoomMapper studyRoomMapper;
+    private PersonMapper personMapper;
+    private StudyRoomMapper roomMapper;
 
-    public BookingMapper(final PersonMapper personMapper, final StudyRoomMapper studyRoomMapper) {
+    public BookingMapper(PersonMapper personMapper, StudyRoomMapper roomMapper) {
         this.personMapper = personMapper;
-        this.studyRoomMapper = studyRoomMapper;
+        this.roomMapper = roomMapper;
     }
 
-    public BookingView toView(final Booking booking) {
-        if (booking == null) {
-            return null;
-        }
+    public BookingView toView(Booking b) {
+        if (b == null) return null;
         return new BookingView(
-            booking.getId(),
-            this.personMapper.convertPersonToPersonView(booking.getStudent()),
-            this.studyRoomMapper.toView(booking.getStudyRoom()),
-            booking.getStatus(),
-            booking.getStartTime(),
-            booking.getEndTime(),
-            booking.getCreatedAt()
+            b.getId(),
+            personMapper.toView(b.getStudent()),
+            roomMapper.toView(b.getStudyRoom()),
+            b.getStatus(),
+            b.getStartTime(),
+            b.getEndTime(),
+            b.getCreatedAt()
         );
     }
 }

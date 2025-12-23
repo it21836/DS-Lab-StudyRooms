@@ -16,9 +16,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.Instant;
 import java.time.LocalTime;
 
-/**
- * StudyRoom entity.
- */
 @Entity
 @Table(
     name = "study_room",

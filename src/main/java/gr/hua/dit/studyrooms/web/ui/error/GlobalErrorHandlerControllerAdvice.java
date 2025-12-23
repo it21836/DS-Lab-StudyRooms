@@ -13,9 +13,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-/**
- * Provides global error handling and custom error templates.
- */
+// error pages for UI
 @ControllerAdvice(basePackages = "gr.hua.dit.studyrooms.web.ui")
 @Order(2)
 public class GlobalErrorHandlerControllerAdvice {

@@ -5,25 +5,24 @@ import gr.hua.dit.studyrooms.core.service.model.PersonView;
 
 import org.springframework.stereotype.Component;
 
-/**
- * Mapper to convert {@link Person} to {@link PersonView}.
- */
 @Component
 public class PersonMapper {
 
-    public PersonView convertPersonToPersonView(final Person person) {
-        if (person == null) {
-            return null;
-        }
-        final PersonView personView = new PersonView(
-            person.getId(),
-            person.getHuaId(),
-            person.getFirstName(),
-            person.getLastName(),
-            person.getMobilePhoneNumber(),
-            person.getEmailAddress(),
-            person.getType()
+    public PersonView toView(Person p) {
+        if (p == null) return null;
+        return new PersonView(
+            p.getId(),
+            p.getHuaId(),
+            p.getFirstName(),
+            p.getLastName(),
+            p.getMobilePhoneNumber(),
+            p.getEmailAddress(),
+            p.getType()
         );
-        return personView;
+    }
+
+    // keep old method for compatibility
+    public PersonView convertPersonToPersonView(Person person) {
+        return toView(person);
     }
 }

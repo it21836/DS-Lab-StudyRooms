@@ -5,37 +5,38 @@
     layout:decorate="~{base}">
 
 <head>
-    <title>Manage Rooms</title>
+    <title>Διαχείριση χώρων μελέτης</title>
 </head>
 
 <body>
 
 <header layout:fragment="header">
-    <p><a th:href="@{/bookings}">Back to bookings</a></p>
-    <h1>Manage Study Rooms</h1>
+    <p><a th:href="@{/bookings}">Πίσω στις κρατήσεις</a></p>
+    <h1>Διαχείριση χώρων μελέτης</h1>
 </header>
 
 <section layout:fragment="main">
 
     <div class="mb-4">
-        <a th:href="@{/profile}" th:text="'Logged in as: ' + ${me.emailAddress()} + ' (STAFF)'"></a>
+        <a th:href="@{/profile}" th:text="'Συνδεδεμένος ως: ' + ${me.emailAddress()} + ' (STAFF)'"></a>
     </div>
 
     <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
     <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 
     <div class="mb-3">
-        <a th:href="@{/staff/rooms/new}" class="btn btn-primary">Add New Room</a>
+        <a th:href="@{/staff/rooms/new}" class="btn btn-primary">Προσθήκη χώρου μελέτης</a>
+        <a th:href="@{/staff/statistics}" class="btn btn-secondary">Στατιστικά Πληρότητας</a>
     </div>
 
     <table class="table">
         <thead>
         <tr>
-            <th>Name</th>
-            <th>Capacity</th>
-            <th>Hours</th>
-            <th>Status</th>
-            <th>Actions</th>
+            <th>Όνομα</th>
+            <th>Χωρητικότητα</th>
+            <th>Ωράριο</th>
+            <th>Κατάσταση</th>
+            <th>Ενέργειες</th>
         </tr>
         </thead>
         <tbody>
@@ -43,9 +44,9 @@
             <td th:text="${room.name()}"></td>
             <td th:text="${room.capacity()}"></td>
             <td th:text="${room.operatingHoursStart()} + ' - ' + ${room.operatingHoursEnd()}"></td>
-            <td th:text="${room.isActive()} ? 'Active' : 'Inactive'"></td>
+            <td th:text="${room.isActive()} ? 'Ενεργός' : 'Ανενεργός'"></td>
             <td>
-                <a th:href="@{|/staff/rooms/${room.id()}/edit|}" class="btn btn-sm btn-secondary">Edit</a>
+                <a th:href="@{|/staff/rooms/${room.id()}/edit|}" class="btn btn-sm btn-secondary">Επεξεργασία</a>
             </td>
         </tr>
         </tbody>
@@ -55,4 +56,3 @@
 
 </body>
 </html>
-

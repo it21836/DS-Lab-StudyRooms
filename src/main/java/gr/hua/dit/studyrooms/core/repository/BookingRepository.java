@@ -12,9 +12,6 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
-/**
- * Repository for Booking entity.
- */
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 

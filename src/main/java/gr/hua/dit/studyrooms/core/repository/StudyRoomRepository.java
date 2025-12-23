@@ -7,9 +7,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-/**
- * Repository for {@link StudyRoom} entity.
- */
 @Repository
 public interface StudyRoomRepository extends JpaRepository<StudyRoom, Long> {
 
