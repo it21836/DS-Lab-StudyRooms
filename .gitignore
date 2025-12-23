@@ -5,7 +5,9 @@ target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
-*.md
+PROJECT_DESCRIPTION.md
+DEVELOPMENT_TIMELINE.md
+TECHNICAL_REPORT.md
 
 ### STS ###
 .apt_generated
