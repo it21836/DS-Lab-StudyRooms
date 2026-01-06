@@ -8,6 +8,7 @@ import gr.hua.dit.studyrooms.core.service.model.PersonView;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PersonDataServiceImpl implements PersonDataService {
@@ -23,5 +24,10 @@ public class PersonDataServiceImpl implements PersonDataService {
     @Override
     public List<PersonView> getAllPeople() {
         return repo.findAll().stream().map(mapper::toView).toList();
+    }
+
+    @Override
+    public Optional<PersonView> getPersonById(long id) {
+        return repo.findById(id).map(mapper::toView);
     }
 }

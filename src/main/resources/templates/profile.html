@@ -6,38 +6,68 @@
     layout:decorate="~{base}">
 
 <head>
-    <title>Προφίλ</title>
+    <title>Το Προφίλ μου</title>
 </head>
 
 <body>
 
 <header layout:fragment="header">
-    <h1>StudyRooms <small>/ Προφίλ</small></h1>
+    <h1>Το Προφίλ μου</h1>
 </header>
 
 <section layout:fragment="main">
 
-    <div>
-        <div>
-            <a th:href="@{/profile}" th:text="'Συνδεδεμένος ως: ' + ${me.emailAddress()} + ' (' + ${me.type()} + ')'"></a>
+    <div class="mb-4">
+        <a th:href="@{/profile}" th:text="'Συνδεδεμένος ως: ' + ${me.emailAddress()} + ' (' + ${me.type()} + ')'"></a>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Στοιχεία Χρήστη</h5>
         </div>
+        <div class="card-body">
+            <table class="table table-borderless mb-0">
+                <tbody>
+                    <tr>
+                        <th style="width: 40%;">Όνομα</th>
+                        <td th:text="${person.firstName()}"></td>
+                    </tr>
+                    <tr>
+                        <th>Επώνυμο</th>
+                        <td th:text="${person.lastName()}"></td>
+                    </tr>
+                    <tr>
+                        <th>Πλήρες Όνομα</th>
+                        <td th:text="${person.fullName()}"></td>
+                    </tr>
+                    <tr>
+                        <th>HUA ID</th>
+                        <td th:text="${person.huaId()}"></td>
+                    </tr>
+                    <tr>
+                        <th>Email</th>
+                        <td th:text="${person.emailAddress()}"></td>
+                    </tr>
+                    <tr>
+                        <th>Κινητό Τηλέφωνο</th>
+                        <td th:text="${person.mobilePhoneNumber()}"></td>
+                    </tr>
+                    <tr>
+                        <th>Τύπος Χρήστη</th>
+                        <td th:switch="${person.type().name()}">
+                            <span th:case="'STUDENT'">Φοιτητής</span>
+                            <span th:case="'STAFF'">Προσωπικό</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-        <hr>
-
-        <ul>
-            <li>
-                <a th:href="@{/profile}">Προφίλ</a>
-            </li>
-            <li>
-                <a th:href="@{/bookings}">Οι κρατήσεις μου</a>
-            </li>
-            <li sec:authorize="hasRole('STAFF')">
-                <a th:href="@{/staff/rooms}">Διαχείριση χώρων μελέτης</a>
-            </li>
-            <li>
-                <a th:href="@{/logout}">Αποσύνδεση</a>
-            </li>
-        </ul>
+    <div class="d-flex gap-2 flex-wrap">
+        <a th:href="@{/bookings}" class="btn btn-primary">Οι κρατήσεις μου</a>
+        <a sec:authorize="hasRole('STAFF')" th:href="@{/staff/rooms}" class="btn btn-primary">Διαχείριση χώρων μελέτης</a>
+        <a th:href="@{/logout}" class="btn btn-outline-danger">Αποσύνδεση</a>
     </div>
 
 </section>
